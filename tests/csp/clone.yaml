@@ -1,0 +1,16 @@
+{
+    "name": "my-new-volume17",
+    "size": "1073741824",
+    "description": "my first clone volume",
+    "clone": "true",
+    "base_snapshot_id": "tank_my-new-volume16@my-first-snapshot",
+    "config": {
+        "compression": "gzip-1",
+        "deduplication": "off",
+        "sparse": true,
+        "volblocksize": "16K",
+        "sync": "always",
+        "zpool": "tank"
+
+    }
+}
