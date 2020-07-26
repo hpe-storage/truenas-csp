@@ -1,0 +1,13 @@
+{
+    "name": "host-01.lab.internet.com",
+    "uuid": "41302701-0196-420f-b319-834a79891db0",
+    "iqns": [
+        "iqn.2019-07.com.nimblestorage:cool-iqn",
+        "iqn.2019-06.com.cloudvolumes:cooler-iqn"
+    ],
+    "networks": [
+        "172.28.12.161/20",
+        "10.234.63.105/20"
+    ],
+    "wwpns": []
+}

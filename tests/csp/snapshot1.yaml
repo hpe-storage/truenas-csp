@@ -1,0 +1,6 @@
+{
+    "name": "my-first-snapshot",
+    "description": "my first snapshot",
+    "volume_id": "tank_my-new-volume16",
+    "config": {}
+}

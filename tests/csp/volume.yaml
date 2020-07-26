@@ -1,0 +1,14 @@
+{
+    "name": "my-new-volume16",
+    "size": "1073741824",
+    "description": "my first volume",
+    "config": {
+        "compression": "GZIP-1",
+        "deduplication": "OFF",
+        "sparse": true,
+        "volblocksize": "16K",
+        "sync": "ALWAYS",
+        "zpool": "tank"
+
+    }
+}

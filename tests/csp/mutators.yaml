@@ -1,0 +1,10 @@
+{
+    "size": "2147483648",
+    "description": "my other description",
+    "config": {
+        "compression": "LZ4",
+        "deduplication": "ON",
+        "sync": "ALWAYS"
+
+    }
+}
