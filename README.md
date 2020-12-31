@@ -13,7 +13,7 @@ CSP API endpoints:
 
 The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI and Fibre Channel protocols.
 
-As of version 1.2.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 1.3.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -26,7 +26,9 @@ Volume stats and topology are the two CSI features currently not supported by th
 
 # Releases
 
-There are currently no releases. Deployments below references the `:edge` tag which is currently under development. Releases will be tagged after the HPE CSI Driver, expect a 1.3.0 release in the near future.
+Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CORE CSP will be pushed to the same image tag matching the HPE CSI Driver version.
+
+* [TrueNAS CORE CSP v1.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v1.3.0) for HPE CSI Driver v1.3.0
 
 # Install
 
@@ -37,17 +39,17 @@ See [INSTALL](INSTALL.md).
 A Makefile is provided to run the CSP in a local docker container, make sure docker is running and issue:
 
 ```
-make all
+make all run
 ```
 
 The CSP is now listening on localhost:8080
 
 **Important:** When building and testing the CSP locally it will run with debug logging switched on and it will log your API key on stdout in the container.
 
-There are a few adhoc tests provided. Make sure you have a TrueNAS appliance configured with:
+There are a few adhoc tests provided. Make sure you have a TrueNAS CORE appliance configured with:
 
 - A pool named "tank" 
-- iSCSI portal configured as described in the prerequisites
+- iSCSI portal configured as described in the [prerequisites](INSTALL.md#prerequisites).
 
 ```
 make test backend=<IP address of management interface on the TrueNAS appliance> password=<API key>
@@ -63,7 +65,7 @@ Please file an [issue](https://github.com/hpe-storage/truenas-csp/issues). This 
 
 Contributing to the TrueNAS CORE CSP is subject to the following [contributing](CONTRIBUTING.md) guidelines.
 
-# Other Containter Storage Providers for HPE CSI Driver
+# Other Container Storage Providers for HPE CSI Driver
 
 There's currently no other open source CSPs, but the official HPE CSI Driver for Kubernetes include:
 
@@ -78,6 +80,8 @@ The TrueNAS CORE CSP is not the only enabler of TrueNAS CORE for Kubernetes.
 - [FreeNAS Provisioner](https://github.com/nmaupu/freenas-provisioner): An external provisioner for FreeNAS NFS exports
 
 # License
+
+TrueNAS CORE(R) (C) 2020 iXsystems, Inc.
 
 TrueNAS CORE CSP is released under the [MIT License](LICENSE).
 
