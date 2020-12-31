@@ -111,7 +111,7 @@ reclaimPolicy: Delete
 allowVolumeExpansion: true
 ```
 
-Set `root` to a dataset that will serve as the base dataset where the ZVols will be created. The `allowOverrides` parameter will allow users to annotate their PVCs with the values that makes sense for their workload. [Learn more here](https://scod.hpedev.io/csi_driver/using.html#using_pvc_overrides)
+Set `root` to a dataset that will serve as the base dataset where the ZVols will be created. The `allowOverrides` parameter will allow users to annotate their PVCs with the values that makes sense for their workload. [Learn more here](https://scod.hpedev.io/csi_driver/using.html#using_pvc_overrides).
 
 **Important:** Do NOT use underscore "`_`" in your root dataset for now, it will most likely break.
 
