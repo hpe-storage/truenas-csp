@@ -1,0 +1,14 @@
+StorageClass:
+  FromExistingClassName: "hpe-standard"
+SnapshotClass:
+  FromExistingClassName: "hpe-snapshot"
+DriverInfo:
+  Name: csi.hpe.com
+  Capabilities:
+    block: true
+    controllerExpansion: true
+    exec: true
+    multipods: false
+    persistence: true
+    pvcDataSource: true
+    snapshotDataSource: true
