@@ -32,7 +32,7 @@ spec:
       priorityClassName: system-cluster-critical
       containers:
         - name: truenas-csp
-          image: hpestorage/truenas-csp:edge
+          image: quay.io/datamattsson/truenas-csp:v1.3.0
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080

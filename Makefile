@@ -6,8 +6,10 @@ curl_args = '-v'
 all:
 	python3 -m py_compile truenascsp/*.py
 	rm -rf truenascsp/__pycache__
-	docker rm -f truenas-csp || true
 	docker build -t hpestorage/truenas-csp:edge .
+
+run:
+	docker rm -f truenas-csp || true
 	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 hpestorage/truenas-csp:edge
 
 test:
