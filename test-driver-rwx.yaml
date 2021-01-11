@@ -1,0 +1,13 @@
+StorageClass:
+  FromExistingClassName: "hpe-standard-nfs"
+ClaimSize: "1Gi"
+DriverInfo:
+  Name: csi.hpe.com
+  Capabilities:
+    block: false
+    controllerExpansion: false
+    exec: true
+    multipods: true
+    persistence: true
+    pvcDataSource: false
+    snapshotDataSource: false

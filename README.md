@@ -13,7 +13,7 @@ CSP API endpoints:
 
 The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI and Fibre Channel protocols.
 
-As of version 1.3.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 1.4.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -28,6 +28,7 @@ Volume stats and topology are the two CSI features currently not supported by th
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CORE CSP will be pushed to the same image tag matching the HPE CSI Driver version.
 
+* [TrueNAS CORE CSP v1.4.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v1.4.0) for HPE CSI Driver v1.4.0
 * [TrueNAS CORE CSP v1.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v1.3.0) for HPE CSI Driver v1.3.0
 
 # Install
@@ -90,11 +91,11 @@ The TrueNAS CORE CSP is not the only enabler of TrueNAS CORE for Kubernetes.
 
 # License
 
-TrueNAS CORE(R) (C) 2020 iXsystems, Inc.
+TrueNAS CORE(R) (C) 2021 iXsystems, Inc.
 
 TrueNAS CORE CSP is released under the [MIT License](LICENSE).
 
-(C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+(C) Copyright 2021 Hewlett Packard Enterprise Development LP.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

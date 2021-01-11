@@ -4,7 +4,7 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 
 ## Prerequisites
 
-- HPE CSI Driver for Kubernetes version 1.3.0 or later
+- HPE CSI Driver for Kubernetes version 1.4.0 or later
 - TrueNAS CORE 12 BETA or later
 
 ### HPE CSI Driver for Kubernetes
@@ -14,14 +14,15 @@ The HPE CSI Driver may be installed using either a Helm Chart, Operator or direc
 Install the TrueNAS CORE CSP:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v1.3.0/truenas-csp.yaml
+kubectl create ns hpe-storage
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v1.4.0/truenas-csp.yaml
 ```
 
 Install HPE CSI Driver:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.3.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.3.0/hpe-csi-k8s-1.18.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-csi-k8s-1.20.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CORE CSP and the HPE CSI Driver will most likely **NOT** work.
@@ -34,7 +35,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: truenas-secret
-  namespace: kube-system
+  namespace: hpe-storage
 stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
@@ -78,7 +79,7 @@ All the ZVols created on TrueNAS will by default be created with these parameter
 - description: "Dataset created by HPE CSI Driver for Kubernetes"
 - root: tank
 
-These parameters may be overriden in the `StorageClass` or have the defaults altered by passing enviornment variables to the CSP runtime with the convention of `DEFAULT_COMPRESSION=OFF`. 
+These parameters may be overriden in the `StorageClass` or have the defaults altered by passing environment variables to the CSP runtime with the convention of `DEFAULT_COMPRESSION=OFF`. 
 
 Refer to the TrueNAS CORE documentation what these dataset parameters do.
 
@@ -95,15 +96,15 @@ metadata:
 provisioner: csi.hpe.com
 parameters:
   csi.storage.k8s.io/controller-expand-secret-name: truenas-secret
-  csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+  csi.storage.k8s.io/controller-expand-secret-namespace: hpe-storage
   csi.storage.k8s.io/controller-publish-secret-name: truenas-secret
-  csi.storage.k8s.io/controller-publish-secret-namespace: kube-system
+  csi.storage.k8s.io/controller-publish-secret-namespace: hpe-storage
   csi.storage.k8s.io/node-publish-secret-name: truenas-secret
-  csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+  csi.storage.k8s.io/node-publish-secret-namespace: hpe-storage
   csi.storage.k8s.io/node-stage-secret-name: truenas-secret
-  csi.storage.k8s.io/node-stage-secret-namespace: kube-system
+  csi.storage.k8s.io/node-stage-secret-namespace: hpe-storage
   csi.storage.k8s.io/provisioner-secret-name: truenas-secret
-  csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+  csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
   csi.storage.k8s.io/fstype: xfs
   allowOverrides: sparse,compression,deduplication,volblocksize,sync,description
   root: zwimming/csi-volumes

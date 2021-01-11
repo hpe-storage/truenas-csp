@@ -2,6 +2,7 @@ StorageClass:
   FromExistingClassName: "hpe-standard"
 SnapshotClass:
   FromExistingClassName: "hpe-snapshot"
+ClaimSize: "1Gi"
 DriverInfo:
   Name: csi.hpe.com
   Capabilities:
