@@ -1,0 +1,38 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: truenas-csp-svc
+  namespace: hpe-storage
+  labels:
+    app: truenas-csp-svc
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: truenas-csp
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: truenas-csp
+  namespace: hpe-storage
+spec:
+  selector:
+    matchLabels:
+      app: truenas-csp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: truenas-csp
+    spec:
+      priorityClassName: system-cluster-critical
+      containers:
+        - name: truenas-csp
+          image: quay.io/datamattsson/truenas-csp:v1.4.0
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8080
