@@ -258,7 +258,7 @@ class Handler:
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.req_backend.raise_for_status()
         except Exception:
-            self.csp_error('Backend Request (POST) Exception',
+            self.csp_error('Backend Request (PUT) Exception',
                            traceback.format_exc())
 
     def delete(self, uri, **kwargs):
