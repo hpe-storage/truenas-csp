@@ -216,7 +216,7 @@ class Handler:
             'Authorization': 'Bearer {token}'.format(token=self.token)
         }
         try:
-            self.logger.debug('TrueNAS GET request URI: %s', uri)
+            self.logger.debug('TrueNAS GET request URI: %s\n\tHeaders: %s', uri, headers)
             self.req_backend = requests.get(self.url_tmpl(uri),
                                             headers=headers, verify=False)
             self.logger.debug('TrueNAS response: %s', self.req_backend.text)
