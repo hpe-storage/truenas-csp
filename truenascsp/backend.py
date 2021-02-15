@@ -76,11 +76,16 @@ class Handler:
 
     def _get_auth(self):
         """
+        Gets Authentication mechanism for all requests.
+        If the username is given as "root", assumes
+        FreeNAS <v12 that does NOT support API Keys
         """
         if self.username == "root":
             # Support for FreeNAS <v12
+            self.logger.debug("Using Basic Auth for authentication")
             return HTTPBasicAuth(self.username, self.token)
         else:
+            self.logger.debug("API Key detected. Will use token auth.")
             return {
                 'Authorization': 'Bearer {token}'.format(token=self.token)
             }
@@ -226,7 +231,7 @@ class Handler:
     def get(self, uri):
         auth = self._get_auth()
         try:
-            self.logger.debug('TrueNAS GET request URI: %s\n\tHeaders: %s', uri, headers)
+            self.logger.debug('TrueNAS GET request URI: %s\n', uri)
             if type(auth) == HTTPBasicAuth:
                 self.req_backend = requests.get(self.url_tmpl(uri),
                                     auth=auth, verify=False)
