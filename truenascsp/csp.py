@@ -56,14 +56,14 @@ class TokenHandler:
             token = environ.get('PASSWORD')
 
         if content:
-            token = content.get('password') if not token
+            token = content.get('password') if not token else token
             array = content.get('array_ip')
             # username = content.get('username')
             # api.username = content.get('username')
 
         if None in (token, array):
             api.logger.debug("None in token or array.\n\tHeaders: %s", req.headers)
-            token = req.get_header('x-auth-token') if not token
+            token = req.get_header('x-auth-token') if not token else token
             array = req.get_header('x-array-ip')
 
         if not token:
