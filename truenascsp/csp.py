@@ -52,6 +52,7 @@ class TokenHandler:
         if content:
             token = content.get('password')
             array = content.get('array_ip')
+            username = content.get('username')
 
         if None in (token, array):
             token = req.get_header('x-auth-token')
@@ -71,6 +72,7 @@ class TokenHandler:
 
         api.backend = array
         api.token = token
+        api.username = token
 
         api.ping(req)
 
