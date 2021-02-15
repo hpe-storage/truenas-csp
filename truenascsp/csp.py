@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 #
 
+from os import environ
 import falcon
 import backend
 import truenascsp
@@ -48,16 +49,21 @@ class TokenHandler:
         if tokens_url != -1 and req.method == 'DELETE':
             req.context = api
             return
+        
+        if environ.get('USERNAME'):
+            api.username = environ.get('USERNAME')
+        if environ.get('PASSWORD'):
+            token = environ.get('PASSWORD')
 
         if content:
-            token = content.get('password')
+            token = content.get('password') if not token
             array = content.get('array_ip')
             # username = content.get('username')
-            api.username = content.get('username')
+            # api.username = content.get('username')
 
         if None in (token, array):
-            api.logger.debug("None on token or .\n\tHeaders: %s", req.headers)
-            token = req.get_header('x-auth-token')
+            api.logger.debug("None in token or array.\n\tHeaders: %s", req.headers)
+            token = req.get_header('x-auth-token') if not token
             array = req.get_header('x-array-ip')
 
         if not token:
