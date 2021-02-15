@@ -72,7 +72,7 @@ class TokenHandler:
 
         api.backend = array
         api.token = token
-        api.username = token
+        api.username = username
 
         api.ping(req)
 
