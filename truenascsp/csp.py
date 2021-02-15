@@ -56,7 +56,7 @@ class TokenHandler:
             api.username = content.get('username')
 
         if None in (token, array):
-            api.logger.debug("None on token or array")
+            api.logger.debug("None on token or .\n\tHeaders: %s", req.headers)
             token = req.get_header('x-auth-token')
             array = req.get_header('x-array-ip')
 
