@@ -58,8 +58,6 @@ class TokenHandler:
         if content:
             token = content.get('password') if not token else token
             array = content.get('array_ip')
-            # username = content.get('username')
-            # api.username = content.get('username')
 
         if None in (token, array):
             api.logger.debug("None in token or array.\n\tHeaders: %s", req.headers)
@@ -80,7 +78,6 @@ class TokenHandler:
 
         api.backend = array
         api.token = token
-        # api.username = username
 
         api.ping(req)
 
