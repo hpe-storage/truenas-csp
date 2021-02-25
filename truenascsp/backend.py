@@ -40,7 +40,6 @@ class Handler:
         self.backend_schema = 'https'
         self.backend_api = '/api/v2.0/'
         self.backend = None
-        self.username = None
         self.token = None
         self.pong = None
         self.req_backend = None
@@ -80,10 +79,11 @@ class Handler:
         If the username is given as "root", assumes
         FreeNAS <v12 that does NOT support API Keys
         """
-        if self.username == "root":
+
+        if self.token.find("root:") > -1:
             # Support for FreeNAS <v12
             self.logger.debug("Using Basic Auth for authentication")
-            return HTTPBasicAuth(self.username, self.token)
+            return HTTPBasicAuth("root", self.token.split(":")[1])
         else:
             self.logger.debug("API Key detected. Will use token auth.")
             return {
@@ -297,12 +297,6 @@ class Handler:
                 auth.update(headers)
                 self.req_backend = requests.delete(self.url_tmpl(uri),
                                     json=kwargs.get('body'), headers=auth, verify=False)
-            # if kwargs.get('body'):
-            #     self.req_backend = requests.delete(self.url_tmpl(uri),
-            #                         json=kwargs.get('body'), headers=headers, verify=False)
-            # else:
-            #     self.req_backend = requests.delete(self.url_tmpl(uri),
-            #                         headers=headers, verify=False)
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.logger.debug('TrueNAS response: %s', self.req_backend.status_code)
