@@ -268,6 +268,10 @@ class Volumes:
     def on_get(self, req, resp):
         api = req.context
         try:
+            content = req.media
+            api.logger.debug("Volumes Content %s", content)
+            root = content.get('config').get('root', api.dataset_defaults.get('root'))
+            api.logger.debug("Volumes root %s", root)
             if req.params.get('name'):
                 regex = re.compile(
                     '.*/{volume_name}$'.format(volume_name=req.params.get('name')))
