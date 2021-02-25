@@ -39,8 +39,8 @@ metadata:
 stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
-  username: hpe-csi # "root" for FreeNAS 11.3
-  password: TrueNAS CORE API key # root password for FreeNAS 11.3
+  username: hpe-csi
+  password: TrueNAS CORE API key # For FreeNAS 11.3, set to "root:<root_password>"
   backend: TrueNAS CORE management IP address
 ```
 
