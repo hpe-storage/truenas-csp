@@ -220,10 +220,11 @@ class Volume:
         api = req.context
         api.logger.debug("Volume GET request for volume ID %s", volume_id)
         try:
-            content = req.media
+            content = req
             api.logger.debug("Volume Content %s", content)
-            root = content.get('config').get('root', api.dataset_defaults.get('root'))
-            api.logger.debug("Volume root %s", root)
+            # content is None
+            # root = content.get('config').get('root', api.dataset_defaults.get('root'))
+            # api.logger.debug("Volume root %s", root)
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
 
@@ -276,10 +277,10 @@ class Volumes:
         api = req.context
         api.logger.debug("Volumes GET request")
         try:
-            content = req.media
+            content = req
             api.logger.debug("Volumes Content %s", content)
-            root = content.get('config').get('root', api.dataset_defaults.get('root'))
-            api.logger.debug("Volumes root %s", root)
+            # root = content.get('config').get('root', api.dataset_defaults.get('root'))
+            # api.logger.debug("Volumes root %s", root)
             if req.params.get('name'):
                 regex = re.compile(
                     '.*/{volume_name}$'.format(volume_name=req.params.get('name')))
