@@ -220,14 +220,8 @@ class Volume:
         api = req.context
         api.logger.debug("Volume GET request for volume ID %s", volume_id)
         try:
-            content = req
-            api.logger.debug("Volume Content %s", content)
-            # content is None
-            # root = content.get('config').get('root', api.dataset_defaults.get('root'))
-            # api.logger.debug("Volume root %s", root)
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
-
             if dataset:
                 csi_resp = api.dataset_to_volume(dataset)
                 resp.body = json.dumps(csi_resp)
@@ -250,7 +244,6 @@ class Volume:
         try:
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
-
             if dataset:
                 csi_volume = api.dataset_to_volume(dataset)
 
@@ -277,10 +270,6 @@ class Volumes:
         api = req.context
         api.logger.debug("Volumes GET request")
         try:
-            content = req
-            api.logger.debug("Volumes Content %s", content)
-            # root = content.get('config').get('root', api.dataset_defaults.get('root'))
-            # api.logger.debug("Volumes root %s", root)
             if req.params.get('name'):
                 regex = re.compile(
                     '.*/{volume_name}$'.format(volume_name=req.params.get('name')))
