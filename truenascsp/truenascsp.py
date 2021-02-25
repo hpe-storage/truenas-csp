@@ -164,6 +164,7 @@ class Publish:
 
 class Volume:
     def on_put(self, req, resp, volume_id):
+        api.logger.debug("Volume PUT request for volume ID %s", volume_id)
         api = req.context
         try:
             dataset = api.fetch('pool/dataset', field='name',
@@ -216,6 +217,7 @@ class Volume:
             resp.status = falcon.HTTP_500
 
     def on_get(self, req, resp, volume_id):
+        api.logger.debug("Volume GET request for volume ID %s", volume_id)
         api = req.context
         try:
             content = req.media
@@ -241,6 +243,7 @@ class Volume:
             resp.status = falcon.HTTP_500
 
     def on_delete(self, req, resp, volume_id):
+        api.logger.debug("Volume DELETE request for volume ID %s", volume_id)
         api = req.context
 
         try:
@@ -270,6 +273,7 @@ class Volume:
 
 class Volumes:
     def on_get(self, req, resp):
+        api.logger.debug("Volumes GET request")
         api = req.context
         try:
             content = req.media
@@ -300,6 +304,7 @@ class Volumes:
             resp.status = falcon.HTTP_500
 
     def on_post(self, req, resp):
+        api.logger.debug("Volumes POST request")
         api = req.context
 
         try:
