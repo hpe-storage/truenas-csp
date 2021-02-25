@@ -36,14 +36,3 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080
-          env:
-            - name: USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: truenas-secret
-                  key: username
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: truenas-secret
-                  key: password
