@@ -54,6 +54,7 @@ class TokenHandler:
             array = content.get('array_ip')
 
         if None in (token, array):
+            token = req.get_header('x-auth-token')
             array = req.get_header('x-array-ip')
 
         if not token:
