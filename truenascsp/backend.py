@@ -101,7 +101,8 @@ class Handler:
         self.logger.debug('       query: %s', req.query_string)
         self.logger.debug('      method: %s', req.method)
         self.logger.debug('content_type: %s', req.content_type)
-        self.logger.debug('     headers: %s', json.dumps(req.headers))
+        headers = json.dumps(req.headers).replace(self.token, "*****")
+        self.logger.debug('     headers: %s', headers)
 
     def url_tmpl(self, uri):
         return '{schema}://{backend}{api}{uri}'.format(schema=self.backend_schema,
