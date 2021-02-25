@@ -218,6 +218,10 @@ class Volume:
     def on_get(self, req, resp, volume_id):
         api = req.context
         try:
+            content = req.media
+            api.logger.debug("Volume Content %s", content)
+            root = content.get('config').get('root', api.dataset_defaults.get('root'))
+            api.logger.debug("Volume root %s", root)
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
 
