@@ -165,7 +165,6 @@ class Publish:
 class Volume:
     def on_put(self, req, resp, volume_id):
         api = req.context
-        api.logger.debug("Volume PUT request for volume ID %s", volume_id)
         try:
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
@@ -218,10 +217,10 @@ class Volume:
 
     def on_get(self, req, resp, volume_id):
         api = req.context
-        api.logger.debug("Volume GET request for volume ID %s", volume_id)
         try:
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
+
             if dataset:
                 csi_resp = api.dataset_to_volume(dataset)
                 resp.body = json.dumps(csi_resp)
@@ -239,11 +238,11 @@ class Volume:
 
     def on_delete(self, req, resp, volume_id):
         api = req.context
-        api.logger.debug("Volume DELETE request for volume ID %s", volume_id)
 
         try:
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
+
             if dataset:
                 csi_volume = api.dataset_to_volume(dataset)
 
@@ -268,7 +267,6 @@ class Volume:
 class Volumes:
     def on_get(self, req, resp):
         api = req.context
-        api.logger.debug("Volumes GET request")
         try:
             if req.params.get('name'):
                 regex = re.compile(
@@ -295,7 +293,6 @@ class Volumes:
 
     def on_post(self, req, resp):
         api = req.context
-        api.logger.debug("Volumes POST request")
 
         try:
             content = req.media
