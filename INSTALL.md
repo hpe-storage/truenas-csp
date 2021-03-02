@@ -5,7 +5,7 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 ## Prerequisites
 
 - HPE CSI Driver for Kubernetes version 1.4.0 or later
-- TrueNAS CORE 12 BETA or later
+- FreeNAS/TrueNAS CORE 11.3-U5 or later
 
 ### HPE CSI Driver for Kubernetes
 
@@ -13,14 +13,14 @@ The HPE CSI Driver may be installed using either a Helm Chart, Operator or direc
 
 Install the TrueNAS CORE CSP:
 
-```
+```shell
 kubectl create ns hpe-storage
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v1.4.0/truenas-csp.yaml
 ```
 
 Install HPE CSI Driver:
 
-```
+```shell
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-linux-config.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-csi-k8s-1.20.yaml
 ```
@@ -29,7 +29,7 @@ kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/m
 
 Create a `Secret` that references your TrueNAS CORE appliance:
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Secret
@@ -40,7 +40,7 @@ stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
   username: hpe-csi
-  password: TrueNAS CORE API key
+  password: TrueNAS CORE API key # For FreeNAS 11.3, set to "root:<root_password>"
   backend: TrueNAS CORE management IP address
 ```
 
@@ -85,7 +85,7 @@ Refer to the TrueNAS CORE documentation what these dataset parameters do.
 
 **Note:** Since the iSCSI volumes are backed by ZVols, `volblocksize` will be immutable.
 
-```
+```yaml
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
