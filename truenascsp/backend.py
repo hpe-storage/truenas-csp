@@ -28,6 +28,7 @@ import logging
 import json
 import urllib3
 import requests
+import re
 from requests.auth import HTTPBasicAuth
 
 urllib3.disable_warnings()
@@ -76,19 +77,20 @@ class Handler:
     def _get_auth(self):
         """
         Gets Authentication mechanism for all requests.
-        If the username is given as "root", assumes
-        FreeNAS <v12 that does NOT support API Keys
+        If the token has a API key prefix, assume TrueNAS.
+        FreeNAS <v12 that does NOT support API Keys.
         """
 
-        if self.token.find("root:") > -1:
-            # Support for FreeNAS <v12
-            self.logger.debug("Using Basic Auth for authentication")
-            return HTTPBasicAuth("root", self.token.split(":")[1])
-        else:
-            self.logger.debug("API Key detected. Will use token auth.")
+        p = re.compile('^[0-9]+-')
+
+        if p.match(self.token):
+            self.logger.debug("API Key detected. Will use token authentication.")
             return {
                 'Authorization': 'Bearer {token}'.format(token=self.token)
             }
+        else:
+            self.logger.debug("Assume Basic Auth for authentication.")
+            return HTTPBasicAuth("root", self.token)
 
     def ping(self, req):
         content = req.media
