@@ -1,16 +1,7 @@
+username = hpe-csi
 csp = http://localhost:8080
 curl = curl
-curl_args = -v
-
-ifndef username
-	username = hpe-csi
-endif
-
-ifeq ($(username), root)
-	auth := Authorization: Bearer $(username):$(password)
-else
-	auth = X-Auth-Token: $(password)
-endif
+curl_args = '-v'
 
 all:
 	python3 -m py_compile truenascsp/*.py
