@@ -28,6 +28,8 @@ import logging
 import json
 import urllib3
 import requests
+import re
+from requests.auth import HTTPBasicAuth
 
 urllib3.disable_warnings()
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -72,6 +74,23 @@ class Handler:
             'volblocksize'
         ]
 
+    def _get_auth(self):
+        """
+        Gets Authentication mechanism for all requests.
+        If the token has a API key prefix, assume TrueNAS.
+        FreeNAS <v12 that does NOT support API Keys.
+        """
+
+        p = re.compile('^[0-9]+-')
+
+        if p.match(self.token):
+            self.logger.debug("API Key detected. Will use token authentication.")
+            return {
+                'Authorization': 'Bearer {token}'.format(token=self.token)
+            }
+        else:
+            self.logger.debug("Assume Basic Auth for authentication.")
+            return HTTPBasicAuth("root", self.token)
 
     def ping(self, req):
         content = req.media
@@ -213,13 +232,15 @@ class Handler:
         return uri
 
     def get(self, uri):
-        headers = {
-            'Authorization': 'Bearer {token}'.format(token=self.token)
-        }
+        auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS GET request URI: %s', uri)
-            self.req_backend = requests.get(self.url_tmpl(uri),
-                                            headers=headers, verify=False)
+            if type(auth) == HTTPBasicAuth:
+                self.req_backend = requests.get(self.url_tmpl(uri),
+                                    auth=auth, verify=False)
+            else:
+                self.req_backend = requests.get(self.url_tmpl(uri),
+                                    headers=auth, verify=False)
             self.logger.debug('TrueNAS response: %s', self.req_backend.text)
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
@@ -229,14 +250,16 @@ class Handler:
                            traceback.format_exc())
 
     def post(self, uri, content):
-        headers = {
-            'Authorization': 'Bearer {token}'.format(token=self.token)
-        }
+        auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS POST request URI: %s', uri)
             self.logger.debug('TrueNAS request: %s', content)
-            self.req_backend = requests.post(self.url_tmpl(uri),
-                                             headers=headers, json=content, verify=False)
+            if type(auth) == HTTPBasicAuth:
+                self.req_backend = requests.post(self.url_tmpl(uri),
+                                    auth=auth, json=content, verify=False)
+            else:
+                self.req_backend = requests.post(self.url_tmpl(uri),
+                                    headers=auth, json=content, verify=False)
             self.logger.debug('TrueNAS response: %s', self.req_backend.json())
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
@@ -246,36 +269,37 @@ class Handler:
                            traceback.format_exc())
 
     def put(self, uri, content):
-        headers = {
-            'Authorization': 'Bearer {token}'.format(token=self.token)
-        }
+        auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS PUT request URI: %s', uri)
             self.logger.debug('TrueNAS request: %s', content)
-            self.req_backend = requests.put(self.url_tmpl(uri),
-                                            headers=headers, json=content, verify=False)
+            if type(auth) == HTTPBasicAuth:
+                self.req_backend = requests.put(self.url_tmpl(uri),
+                                    auth=auth, json=content, verify=False)
+            else:
+                self.req_backend = requests.put(self.url_tmpl(uri),
+                                    headers=auth, json=content, verify=False)
             self.logger.debug('TrueNAS response: %s', self.req_backend.json())
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.req_backend.raise_for_status()
         except Exception:
-            self.csp_error('Backend Request (POST) Exception',
+            self.csp_error('Backend Request (PUT) Exception',
                            traceback.format_exc())
 
     def delete(self, uri, **kwargs):
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.token)
-        }
-
+        headers = { 'Content-Type': 'application/json' }
+        auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS DELETE request URI: %s', uri)
-            if kwargs.get('body'):
+            body = kwargs.get('body') if kwargs.get('body') else None 
+            if type(auth) == HTTPBasicAuth:
                 self.req_backend = requests.delete(self.url_tmpl(uri),
-                                                   json=kwargs.get('body'), headers=headers, verify=False)
+                                    json=body, auth=auth, headers=headers, verify=False)
             else:
+                auth.update(headers)
                 self.req_backend = requests.delete(self.url_tmpl(uri),
-                                                   headers=headers, verify=False)
+                                    json=kwargs.get('body'), headers=auth, verify=False)
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.logger.debug('TrueNAS response: %s', self.req_backend.status_code)
