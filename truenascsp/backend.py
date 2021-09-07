@@ -81,7 +81,7 @@ class Handler:
         FreeNAS <v12 that does NOT support API Keys.
         """
 
-        p = re.compile('^[0-9]+-')
+        p = re.compile('^[0-9]+-[a-zA-Z0-9]{64}')
 
         if p.match(self.token):
             self.logger.debug("API Key detected. Will use token authentication.")

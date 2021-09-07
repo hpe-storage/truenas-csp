@@ -1,0 +1,426 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "required": [
+        "logDebug",
+        "image",
+        "imagePullSecrets",
+        "nameOverride",
+        "fullnameOverride",
+        "serviceAccount",
+        "podAnnotations",
+        "podSecurityContext",
+        "securityContext",
+        "service",
+        "ingress",
+        "resources",
+        "nodeSelector",
+        "tolerations",
+        "affinity",
+        "hpe-csi-driver"
+    ],
+    "properties": {
+        "logDebug": {
+            "$id": "#/properties/logDebug",
+            "type": "boolean",
+            "title": "The logDebug schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": false
+        },
+        "image": {
+            "$id": "#/properties/image",
+            "type": "object",
+            "title": "The image schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [
+                "repository",
+                "pullPolicy",
+                "tag"
+            ],
+            "properties": {
+                "repository": {
+                    "$id": "#/properties/image/properties/repository",
+                    "type": "string",
+                    "title": "The repository schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                },
+                "pullPolicy": {
+                    "$id": "#/properties/image/properties/pullPolicy",
+                    "type": "string",
+                    "title": "The pullPolicy schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                },
+                "tag": {
+                    "$id": "#/properties/image/properties/tag",
+                    "type": "string",
+                    "title": "The tag schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                }
+            },
+            "additionalProperties": true
+        },
+        "imagePullSecrets": {
+            "$id": "#/properties/imagePullSecrets",
+            "type": "array",
+            "title": "The imagePullSecrets schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/imagePullSecrets/items"
+            }
+        },
+        "nameOverride": {
+            "$id": "#/properties/nameOverride",
+            "type": "string",
+            "title": "The nameOverride schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": ""
+        },
+        "fullnameOverride": {
+            "$id": "#/properties/fullnameOverride",
+            "type": "string",
+            "title": "The fullnameOverride schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": ""
+        },
+        "serviceAccount": {
+            "$id": "#/properties/serviceAccount",
+            "type": "object",
+            "title": "The serviceAccount schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [
+                "create",
+                "annotations",
+                "name"
+            ],
+            "properties": {
+                "create": {
+                    "$id": "#/properties/serviceAccount/properties/create",
+                    "type": "boolean",
+                    "title": "The create schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": false
+                },
+                "annotations": {
+                    "$id": "#/properties/serviceAccount/properties/annotations",
+                    "type": "object",
+                    "title": "The annotations schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {},
+                    "required": [],
+                    "additionalProperties": true
+                },
+                "name": {
+                    "$id": "#/properties/serviceAccount/properties/name",
+                    "type": "string",
+                    "title": "The name schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                }
+            },
+            "additionalProperties": true
+        },
+        "podAnnotations": {
+            "$id": "#/properties/podAnnotations",
+            "type": "object",
+            "title": "The podAnnotations schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": true
+        },
+        "podSecurityContext": {
+            "$id": "#/properties/podSecurityContext",
+            "type": "object",
+            "title": "The podSecurityContext schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": true
+        },
+        "securityContext": {
+            "$id": "#/properties/securityContext",
+            "type": "object",
+            "title": "The securityContext schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": true
+        },
+        "service": {
+            "$id": "#/properties/service",
+            "type": "object",
+            "title": "The service schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [
+                "type",
+                "port"
+            ],
+            "properties": {
+                "type": {
+                    "$id": "#/properties/service/properties/type",
+                    "type": "string",
+                    "title": "The type schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                },
+                "port": {
+                    "$id": "#/properties/service/properties/port",
+                    "type": "integer",
+                    "title": "The port schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": 8080
+                }
+            },
+            "additionalProperties": true
+        },
+        "ingress": {
+            "$id": "#/properties/ingress",
+            "type": "object",
+            "title": "The ingress schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [
+                "enabled",
+                "className",
+                "annotations",
+                "hosts",
+                "tls"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/ingress/properties/enabled",
+                    "type": "boolean",
+                    "title": "The enabled schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": false
+                },
+                "className": {
+                    "$id": "#/properties/ingress/properties/className",
+                    "type": "string",
+                    "title": "The className schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": ""
+                },
+                "annotations": {
+                    "$id": "#/properties/ingress/properties/annotations",
+                    "type": "object",
+                    "title": "The annotations schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {},
+                    "required": [],
+                    "additionalProperties": true
+                },
+                "hosts": {
+                    "$id": "#/properties/ingress/properties/hosts",
+                    "type": "array",
+                    "title": "The hosts schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": [],
+                    "additionalItems": true,
+                    "items": {
+                        "$id": "#/properties/ingress/properties/hosts/items",
+                        "anyOf": [
+                            {
+                                "$id": "#/properties/ingress/properties/hosts/items/anyOf/0",
+                                "type": "object",
+                                "title": "The first anyOf schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": {},
+                                "examples": [
+                                    {
+                                        "host": "chart-example.local",
+                                        "paths": [
+                                            {
+                                                "path": "/",
+                                                "pathType": "ImplementationSpecific"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "required": [
+                                    "host",
+                                    "paths"
+                                ],
+                                "properties": {
+                                    "host": {
+                                        "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/host",
+                                        "type": "string",
+                                        "title": "The host schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": "",
+                                        "examples": [
+                                            "chart-example.local"
+                                        ]
+                                    },
+                                    "paths": {
+                                        "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/paths",
+                                        "type": "array",
+                                        "title": "The paths schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": [],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/paths/items",
+                                            "anyOf": [
+                                                {
+                                                    "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/paths/items/anyOf/0",
+                                                    "type": "object",
+                                                    "title": "The first anyOf schema",
+                                                    "description": "An explanation about the purpose of this instance.",
+                                                    "default": {},
+                                                    "required": [
+                                                        "path",
+                                                        "pathType"
+                                                    ],
+                                                    "properties": {
+                                                        "path": {
+                                                            "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/paths/items/anyOf/0/properties/path",
+                                                            "type": "string",
+                                                            "title": "The path schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "default": ""
+                                                        },
+                                                        "pathType": {
+                                                            "$id": "#/properties/ingress/properties/hosts/items/anyOf/0/properties/paths/items/anyOf/0/properties/pathType",
+                                                            "type": "string",
+                                                            "title": "The pathType schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "default": ""
+                                                        }
+                                                    },
+                                                    "additionalProperties": false
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                },
+                "tls": {
+                    "$id": "#/properties/ingress/properties/tls",
+                    "type": "array",
+                    "title": "The tls schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": [],
+                    "additionalItems": true,
+                    "items": {
+                        "$id": "#/properties/ingress/properties/tls/items"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "resources": {
+            "$id": "#/properties/resources",
+            "type": "object",
+            "title": "The resources schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": false
+        },
+        "nodeSelector": {
+            "$id": "#/properties/nodeSelector",
+            "type": "object",
+            "title": "The nodeSelector schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": false
+        },
+        "tolerations": {
+            "$id": "#/properties/tolerations",
+            "type": "array",
+            "title": "The tolerations schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/tolerations/items"
+            }
+        },
+        "affinity": {
+            "$id": "#/properties/affinity",
+            "type": "object",
+            "title": "The affinity schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [],
+            "additionalProperties": false
+        },
+        "hpe-csi-driver": {
+            "$id": "#/properties/hpe-csi-driver",
+            "type": "object",
+            "title": "The hpe-csi-driver schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "required": [
+                "disable"
+            ],
+            "properties": {
+                "disable": {
+                    "$id": "#/properties/hpe-csi-driver/properties/disable",
+                    "type": "object",
+                    "title": "The disable schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {},
+                    "required": [
+                        "nimble",
+                        "primera",
+                        "alletra6000",
+                        "alletra9000"
+                    ],
+                    "properties": {
+                        "nimble": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/nimble",
+                            "type": "boolean",
+                            "title": "The nimble schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "primera": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/primera",
+                            "type": "boolean",
+                            "title": "The primera schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "alletra6000": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/alletra6000",
+                            "type": "boolean",
+                            "title": "The alletra6000 schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "alletra9000": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/alletra9000",
+                            "type": "boolean",
+                            "title": "The alletra9000 schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": true
+        },
+        "global": {}
+    },
+    "additionalProperties": false
+}

@@ -1,33 +1,46 @@
 # Install TrueNAS CORE Container Storage Provider
 
-These procedures assumes a running Kubernetes cluster [supported by the HPE CSI Driver](https://scod.hpedev.io/csi_driver/index.html#compatibility_and_support) where the worker nodes have connectivity to a TrueNAS CORE storage appliance API and networks used for iSCSI traffic. Worker nodes also need their package managers fully functional and connected to their official repos unless iSCSI and multipathing packages have been pre-installed. 
+These procedures assumes a running Kubernetes cluster [supported by the HPE CSI Driver](https://scod.hpedev.io/csi_driver/index.html#compatibility_and_support) where the worker nodes have connectivity to a TrueNAS/FreeNAS storage appliance API and networks used for iSCSI traffic. Worker nodes also need their package managers fully functional and connected to their official repos unless iSCSI and multipathing packages have been pre-installed. 
 
 ## Prerequisites
 
-- HPE CSI Driver for Kubernetes version 1.4.0 or later
+- HPE CSI Driver for Kubernetes version 2.0.0 or later
 - TrueNAS CORE 12 BETA or later
+- FreeNAS 11.2-U3 or later
+- Kubernetes 1.18 or later
+- Helm 3.6 or later (optional, only needed if using Helm to install the CSP)
 
 ### HPE CSI Driver for Kubernetes
 
-The HPE CSI Driver may be installed using either a Helm Chart, Operator or directly with manifests. It doesn't matter which procedure you follow but we'll be using the "[Advanced install](https://scod.hpedev.io/csi_driver/deployment.html#advanced_install)" method as you won't end up with software running on the cluster you don't need.
+The HPE CSI Driver may be installed using either a Helm Chart, Operator or directly with manifests. Directly below is the complete procedures for the "[Advanced install](https://scod.hpedev.io/csi_driver/deployment.html#advanced_install)".
 
-Install the TrueNAS CORE CSP:
+**Note:** The TrueNAS CORE Container Storage Provider Helm Chart has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
+
+Install HPE CSI Driver using manifests:
+
+```
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-csi-k8s-1.20.yaml
+```
+
+Install the TrueNAS CORE CSP using manifests:
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v1.4.0/truenas-csp.yaml
-```
-
-Install HPE CSI Driver:
-
-```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v1.4.0/hpe-csi-k8s-1.20.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.0.0/truenas-csp.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CORE CSP and the HPE CSI Driver will most likely **NOT** work.
 
-Create a `Secret` that references your TrueNAS CORE appliance:
+### TrueNAS CORE Container Storage Provider Helm Chart
+
+The recommended way to install the CSP is to use Helm. 
+
+- Learn more about the chart on [Artifact Hub](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)
+
+### Configure CSI driver
+
+Create a `Secret` that references your TrueNAS/FreeNAS appliance:
 
 ```
 ---
@@ -39,37 +52,37 @@ metadata:
 stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
-  username: hpe-csi
-  password: TrueNAS CORE API key
+  username: hpe-csi (username is a no-op)
+  password: TrueNAS CORE API key or root password
   backend: TrueNAS CORE management IP address
 ```
 
 **Hint:** Generate an API key by clicking the cog in the upper right corner of the TrueNAS CORE web UI. What you name the key or the `Secret` `{.stringData.username}` does not matter as it's not being used or referenced during runtime. For tracking purposes it might be a good idea to name the key the same as the username put into the `Secret`.
 
-### TrueNAS CORE
+### Configure TrueNAS/FreeNAS
 
-The TrueNAS appliance require an iSCSI portal to be configured manually with the following characteristics:
+The TrueNAS/FreeNAS appliance require an iSCSI portal to be configured manually with the following characteristics:
 
-![](assets/portal.png)
+![](https://hpe-storage.github.io/truenas-csp/assets/portal.png)
 
 - Description: `hpe-csi`
 - IP Address: List of IPs used for iSCSI (do NOT use 0.0.0.0)
 
-The Target Global Configration needs to be updated with this Base Name:
+The Target Global Configuration needs to be updated with this Base Name:
 
-![](assets/global-target.png)
+![](https://hpe-storage.github.io/truenas-csp/assets/global-target.png)
 
 - Base Name: `iqn.2011-08.org.truenas.ctl`
 
-**Hint:** If TrueNAS is not giving you the option to select nothing but 0.0.0.0 in the portal configuration is because you're using DHCP. Only statically assigned addresses can be used in the picker.
+**Hint:** If TrueNAS/FreeNAS is not giving you the option to select nothing but 0.0.0.0 in the portal configuration is because you're using DHCP. Only statically assigned addresses can be used in the picker.
 
-Also make sure the iSCSI service is started and enabled at boot on TrueNAS.
+Also make sure the iSCSI service is started and enabled at boot on TrueNAS/FreeNAS.
 
 The default location for CSI volumes will be in the root of a pool named `tank`. That is most likely not desirable, instead, create a dataset in any of your pools and make note of that, i.e `zwimming/csi-volumes` and configure `root` in the `StorageClass`.
 
 ## Example StorageClass
 
-All the ZVols created on TrueNAS will by default be created with these parameters:
+All the ZVols created on TrueNAS/FreeNAS will by default be created with these parameters:
 
 - volblocksize: 8K
 - deduplication: OFF
@@ -79,9 +92,9 @@ All the ZVols created on TrueNAS will by default be created with these parameter
 - description: "Dataset created by HPE CSI Driver for Kubernetes"
 - root: tank
 
-These parameters may be overriden in the `StorageClass` or have the defaults altered by passing environment variables to the CSP runtime with the convention of `DEFAULT_COMPRESSION=OFF`. 
+These parameters may be overridden in the `StorageClass` or have the defaults altered by passing environment variables to the CSP runtime with the convention of `DEFAULT_COMPRESSION=OFF`. 
 
-Refer to the TrueNAS CORE documentation what these dataset parameters do.
+Refer to the TrueNAS/FreeNAS documentation what these dataset parameters do.
 
 **Note:** Since the iSCSI volumes are backed by ZVols, `volblocksize` will be immutable.
 
