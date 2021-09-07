@@ -1,0 +1,22 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: e2e-standard-rwo
+provisioner: csi.hpe.com
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  csi.storage.k8s.io/controller-expand-secret-name: truenas-secret
+  csi.storage.k8s.io/controller-expand-secret-namespace: hpe-storage
+  csi.storage.k8s.io/controller-publish-secret-name: truenas-secret
+  csi.storage.k8s.io/controller-publish-secret-namespace: hpe-storage
+  csi.storage.k8s.io/node-publish-secret-name: truenas-secret
+  csi.storage.k8s.io/node-publish-secret-namespace: hpe-storage
+  csi.storage.k8s.io/node-stage-secret-name: truenas-secret
+  csi.storage.k8s.io/node-stage-secret-namespace: hpe-storage
+  csi.storage.k8s.io/provisioner-secret-name: truenas-secret
+  csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
+  description: "Volume created by the HPE CSI Driver for Kubernetes"
+  accessProtocol: iscsi
+  root: tank
+reclaimPolicy: Delete
+allowVolumeExpansion: true

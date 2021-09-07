@@ -1,0 +1,12 @@
+apiVersion: snapshot.storage.k8s.io/v1beta1
+kind: VolumeSnapshotClass
+metadata:
+  name: e2e-snapshot
+driver: csi.hpe.com
+deletionPolicy: Delete
+parameters:
+  description: "Snapshot created by the HPE CSI Driver"
+  csi.storage.k8s.io/snapshotter-secret-name: truenas-secret
+  csi.storage.k8s.io/snapshotter-secret-namespace: hpe-storage
+  csi.storage.k8s.io/snapshotter-list-secret-name: truenas-secret
+  csi.storage.k8s.io/snapshotter-list-secret-namespace: hpe-storage
