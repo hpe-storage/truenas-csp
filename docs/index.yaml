@@ -11,13 +11,13 @@ entries:
       artifacthub.io/prerelease: "true"
     apiVersion: v2
     appVersion: 2.0.0
-    created: "2021-09-06T18:28:04.290251362-07:00"
+    created: "2021-09-06T18:52:10.703755976-07:00"
     dependencies:
     - name: hpe-csi-driver
       repository: ""
       version: 2.0.0
     description: TrueNAS CORE Container Storage Provider Helm chart for Kubernetes
-    digest: c200a86ba582bde2222895242ca5c3f5dea1511c0d637aec88fb662cddc615d0
+    digest: 53dd8e6c9c8c1e5f784a98aab543e28314bda3d5cf48a446c7d5b3b8fae3e50b
     home: https://github.com/hpe-storage/truenas-csp
     icon: https://hpe-storage.github.io/truenas-csp/assets/icon.svg
     keywords:
@@ -34,4 +34,4 @@ entries:
     urls:
     - truenas-csp-1.0.0.tgz
     version: 1.0.0
-generated: "2021-09-06T18:28:04.288433511-07:00"
+generated: "2021-09-06T18:52:10.70249933-07:00"
