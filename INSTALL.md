@@ -10,6 +10,12 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 - Kubernetes 1.18 or later
 - Helm 3.6 or later (optional, only needed if using Helm to install the CSP)
 
+### TrueNAS CORE Container Storage Provider Helm Chart
+
+The recommended way to install the CSP is to use Helm, it automatically fulfill all dependencies. Make sure to make it back here to learn [how to configure and use the CSP with the CSI driver](https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md#configure-csi-driver).
+
+- Learn more about the Helm chart on [Artifact Hub](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)
+
 ### HPE CSI Driver for Kubernetes
 
 The HPE CSI Driver may be installed using either a Helm Chart, Operator or directly with manifests. Directly below is the complete procedures for the "[Advanced install](https://scod.hpedev.io/csi_driver/deployment.html#advanced_install)".
@@ -31,12 +37,6 @@ kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/mast
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CORE CSP and the HPE CSI Driver will most likely **NOT** work.
-
-### TrueNAS CORE Container Storage Provider Helm Chart
-
-The recommended way to install the CSP is to use Helm. 
-
-- Learn more about the chart on [Artifact Hub](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)
 
 ### Configure CSI driver
 
