@@ -16,17 +16,17 @@ The recommended way to install the CSP is to use Helm, it automatically fulfill 
 
 - Learn more about the Helm chart on [Artifact Hub](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)
 
-### HPE CSI Driver for Kubernetes
+### Install HPE CSI Driver for Kubernetes separately (not recommended)
 
 The HPE CSI Driver may be installed using either a Helm Chart, Operator or directly with manifests. Directly below is the complete procedures for the "[Advanced install](https://scod.hpedev.io/csi_driver/deployment.html#advanced_install)".
 
-**Note:** The TrueNAS CORE Container Storage Provider Helm Chart has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
+**Note:** The [TrueNAS CORE Container Storage Provider Helm Chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
 
 Install HPE CSI Driver using manifests:
 
 ```
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-csi-k8s-1.20.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-csi-k8s-1.21.yaml
 ```
 
 Install the TrueNAS CORE CSP using manifests:
@@ -57,7 +57,7 @@ stringData:
   backend: TrueNAS CORE management IP address
 ```
 
-**Hint:** Generate an API key by clicking the cog in the upper right corner of the TrueNAS CORE web UI. What you name the key or the `Secret` `{.stringData.username}` does not matter as it's not being used or referenced during runtime. For tracking purposes it might be a good idea to name the key the same as the username put into the `Secret`.
+**Hint:** Generate an API key by clicking the cog in the upper right corner of the TrueNAS CORE web UI (FreeNAS does NOT support API keys). What you name the key or the `Secret` `{.stringData.username}` does not matter as it's not being used or referenced during runtime. For tracking purposes it might be a good idea to name the key the same as the username put into the `Secret`.
 
 ### Configure TrueNAS/FreeNAS
 
