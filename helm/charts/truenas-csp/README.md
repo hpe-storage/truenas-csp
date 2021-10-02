@@ -61,11 +61,11 @@ helm uninstall my-truenas-csp -n hpe-storage
 
 **Note**: Due to a limitation in Helm, CRDs are not deleted as part of the chart uninstall.
 
-## Using persistent storage to Kubernetes with TrueNAS and FreeNAS
+## Provisioning persistent storage to Kubernetes with TrueNAS and FreeNAS
 
-The appliance that is intended to be used with the CSI driver must be configured properly before it can be used. Follow the [INSTALL](https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md) document to learn more.
+The appliance that is intended to be used with the CSI driver must be configured properly before it can be used. Follow the [INSTALL](https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md#configure-csi-driver) document to learn more.
 
-Also, it's helpful to be familiar with [persistent storage concepts](https://kubernetes.io/docs/concepts/storage/volumes/) in Kubernetes prior to deploying stateful workloads.
+Also, it's helpful to be familiar with [persistent storage concepts](https://kubernetes.io/docs/concepts/storage/) in Kubernetes prior to deploying stateful workloads.
 
 ## Community
 
