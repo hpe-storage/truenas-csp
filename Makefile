@@ -6,11 +6,11 @@ curl_args = '-v'
 all:
 	python3 -m py_compile truenascsp/*.py
 	rm -rf truenascsp/__pycache__
-	docker build -t hpestorage/truenas-csp:edge .
+	docker build -t quay.io/datamattsson/truenas-csp:edge .
 
 run:
 	docker rm -f truenas-csp || true
-	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 hpestorage/truenas-csp:edge
+	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 quay.io/datamattsson/truenas-csp:edge
 
 test:
 	# Delete host

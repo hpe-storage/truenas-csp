@@ -18,7 +18,7 @@ rwo: mkreports
              -ginkgo.focus='External.Storage' \
 	     -ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
              -storage.testdriver=test-driver-rwo.yaml \
-             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd \
+             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
 	     -report-dir reports
 
 rwx: mkreports
@@ -26,7 +26,7 @@ rwx: mkreports
              -ginkgo.focus='External.Storage' \
 	     -ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
              -storage.testdriver=test-driver-rwx.yaml \
-             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd \
+             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
 	     -report-dir reports
 
 mkreports: 

@@ -1,16 +1,17 @@
-# Install TrueNAS CORE Container Storage Provider
+# Install TrueNAS Container Storage Provider
 
 These procedures assumes a running Kubernetes cluster [supported by the HPE CSI Driver](https://scod.hpedev.io/csi_driver/index.html#compatibility_and_support) where the worker nodes have connectivity to a TrueNAS/FreeNAS storage appliance API and networks used for iSCSI traffic. Worker nodes also need their package managers fully functional and connected to their official repos unless iSCSI and multipathing packages have been pre-installed. 
 
 ## Prerequisites
 
-- HPE CSI Driver for Kubernetes version 2.0.0 or later
-- TrueNAS CORE 12 BETA or later
+- HPE CSI Driver for Kubernetes version 2.1.0 or later
+- TrueNAS 12.0 BETA or later
+- TrueNAS SCALE 22.02 RC1 or later
 - FreeNAS 11.2-U3 or later
-- Kubernetes 1.18 or later
+- Kubernetes 1.20 or later
 - Helm 3.6 or later (optional, only needed if using Helm to install the CSP)
 
-### TrueNAS CORE Container Storage Provider Helm Chart
+### TrueNAS Container Storage Provider Helm Chart
 
 The recommended way to install the CSP is to use Helm, it automatically fulfill all dependencies. Make sure to make it back here to learn [how to configure and use the CSP with the CSI driver](https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md#configure-csi-driver).
 
@@ -20,23 +21,23 @@ The recommended way to install the CSP is to use Helm, it automatically fulfill 
 
 The HPE CSI Driver may be installed using either a Helm Chart, Operator or directly with manifests. Directly below is the complete procedures for the "[Advanced install](https://scod.hpedev.io/csi_driver/deployment.html#advanced_install)".
 
-**Note:** The [TrueNAS CORE Container Storage Provider Helm Chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
+**Note:** The [TrueNAS Container Storage Provider Helm Chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
 
 Install HPE CSI Driver using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.0.0/hpe-csi-k8s-1.21.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.1.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.1.0/hpe-csi-k8s-1.22.yaml
 ```
 
-Install the TrueNAS CORE CSP using manifests:
+Install the TrueNAS CSP using manifests:
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.0.0/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.1.0/truenas-csp.yaml
 ```
 
-**Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CORE CSP and the HPE CSI Driver will most likely **NOT** work.
+**Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
 
 ### Configure CSI driver
 
@@ -53,11 +54,11 @@ stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
   username: hpe-csi (username is a no-op)
-  password: TrueNAS CORE API key or root password
-  backend: TrueNAS CORE management IP address
+  password: API key or root password of TrueNAS/FreeNAS appliance
+  backend: Management IP address of TrueNAS/FreeNAS appliance
 ```
 
-**Hint:** Generate an API key by clicking the cog in the upper right corner of the TrueNAS CORE web UI (FreeNAS does NOT support API keys). What you name the key or the `Secret` `{.stringData.username}` does not matter as it's not being used or referenced during runtime. For tracking purposes it might be a good idea to name the key the same as the username put into the `Secret`.
+**Hint:** Generate an API key by clicking the cog in the upper right corner of the TrueNAS web UI (FreeNAS does NOT support API keys). What you name the key or the `Secret` `{.stringData.username}` does not matter as it's not being used or referenced during runtime. For tracking purposes it might be a good idea to name the key the same as the username put into the `Secret`.
 
 ### Configure TrueNAS/FreeNAS
 
