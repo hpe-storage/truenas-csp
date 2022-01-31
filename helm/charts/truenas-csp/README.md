@@ -1,16 +1,17 @@
-# TrueNAS CORE Container Storage Provider for Kubernetes Helm chart
+# TrueNAS Container Storage Provider for Kubernetes Helm chart
 
-This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes](https://scod.hpedev.io/csi_driver) to provide persistent storage for Kubernetes workloads using [TrueNAS CORE Container Storage Provider](https://github.com/hpe-storage/truenas-csp).
+This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes](https://scod.hpedev.io/csi_driver) to provide persistent storage for Kubernetes workloads using [TrueNAS Container Storage Provider](https://github.com/hpe-storage/truenas-csp).
 
 **Note:** This is a pre-release chart!
 
 ## Prerequisites
 
-- Upstream Kubernetes version >= 1.18
+- Upstream Kubernetes version >= 1.20
 - Most Kubernetes distributions are supported
 - Recent Ubuntu, SLES, CentOS or RHEL compute nodes connected to their respective official package repositories
 - Helm 3 (Version >= 3.6.x required)
-- TrueNAS CORE 12 BETA or later
+- TrueNAS 12.0 BETA or later
+- TrueNAS SCALE 22.02 RC1 or later
 - FreeNAS 11.2-U3 or later
 
 This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver) application versions. Other requirements and prerequisites may be found on that chart.

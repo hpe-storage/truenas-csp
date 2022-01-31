@@ -2,7 +2,7 @@
 apiVersion: v2
 name: truenas-csp
 type: application
-description: TrueNAS CORE Container Storage Provider Helm chart for Kubernetes
+description: TrueNAS Container Storage Provider Helm chart for Kubernetes
 icon: https://hpe-storage.github.io/truenas-csp/assets/icon.svg
 annotations:
   artifacthub.io/license: MIT
@@ -11,9 +11,9 @@ annotations:
       url: https://scod.hpedev.io
     - name: Install
       url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
-  artifacthub.io/prerelease: "true"
-version: "1.0.0"
-appVersion: "2.0.0"
+  artifacthub.io/prerelease: "false"
+version: "1.1.0"
+appVersion: "2.1.0"
 maintainers:
   - name: Michael Mattsson
     email: michael.mattsson@gmail.com
@@ -22,8 +22,8 @@ sources:
 home: https://github.com/hpe-storage/truenas-csp
 dependencies:
   - name: hpe-csi-driver
-    version: 2.0.0
-#    repository: https://hpe-storage.github.io/co-deployments
+    version: 2.1.0
+    repository: "https://hpe-storage.github.io/co-deployments"
 keywords:
   - HPE
   - Storage
