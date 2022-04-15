@@ -2,8 +2,6 @@
 
 This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes](https://scod.hpedev.io/csi_driver) to provide persistent storage for Kubernetes workloads using [TrueNAS Container Storage Provider](https://github.com/hpe-storage/truenas-csp).
 
-**Note:** This is a pre-release chart!
-
 ## Prerequisites
 
 - Upstream Kubernetes version >= 1.20
