@@ -12,8 +12,8 @@ annotations:
     - name: Install
       url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
   artifacthub.io/prerelease: "false"
-version: "1.1.1"
-appVersion: "2.1.1"
+version: "1.1.2"
+appVersion: "2.2.0"
 maintainers:
   - name: Michael Mattsson
     email: michael.mattsson@gmail.com
@@ -22,7 +22,7 @@ sources:
 home: https://github.com/hpe-storage/truenas-csp
 dependencies:
   - name: hpe-csi-driver
-    version: 2.1.1-0
+    version: 2.2.0
     repository: "https://hpe-storage.github.io/co-deployments"
 keywords:
   - HPE

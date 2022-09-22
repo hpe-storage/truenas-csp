@@ -1,4 +1,6 @@
 E2E=./e2e.test
+TEST_PREFIX=External.Storage.\[Driver:.csi.hpe.com\].*
+FOCUS=
 
 ifndef KUBECONFIG
  $(error KUBECONFIG is not set)
@@ -13,24 +15,24 @@ ifeq ("$(wildcard $(E2E))","")
 endif
 
 all: rwo rwx
-rwo: mkreports
-	$(E2E) -ginkgo.v \
-             -ginkgo.focus='External.Storage' \
-	     -ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
-             -storage.testdriver=test-driver-rwo.yaml \
-             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
-	     -report-dir reports
-
-rwx: mkreports
-	$(E2E) -ginkgo.v \
-             -ginkgo.focus='External.Storage' \
-	     -ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
-             -storage.testdriver=test-driver-rwx.yaml \
-             --non-blocking-taints=node-role.kubernetes.io/controlplane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
-	     -report-dir reports
-
-mkreports: 
-	mkdir -p reports
-
+rwo:
+	mkdir -p reports-rw0
+	$(E2E) --ginkgo.v \
+               --ginkgo.focus='$(TEST_PREFIX)$(FOCUS)' \
+	       --ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
+               --non-blocking-taints=node-role.kubernetes.io/control-plane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
+               --ginkgo.timeout=8h \
+               -storage.testdriver=test-driver-rwo.yaml \
+	       -report-dir=reports-rwo
+rwx:
+	mkdir -p reports-rwx
+	$(E2E) --ginkgo.v \
+               --ginkgo.focus='$(TEST_PREFIX)$(FOCUS)' \
+	       --ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \
+	       --ginkgo.skip='.phemeral' \
+               --non-blocking-taints=node-role.kubernetes.io/control-plane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master \
+               --ginkgo.timeout=8h \
+               -storage.testdriver=test-driver-rwx.yaml \
+	       -report-dir=reports-rwx
 clean:
-	rm -rf e2e.test ginkgo reports
+	rm -rf e2e.test ginkgo reports-rwo reports-rwx
