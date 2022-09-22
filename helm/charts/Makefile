@@ -2,6 +2,7 @@ CHART_TARGET:=../../docs
 
 all: truenas-csp
 truenas-csp:
+	helm dependency update $@
 	helm dependency build $@
 	helm lint $@
 	helm package $@ -d .

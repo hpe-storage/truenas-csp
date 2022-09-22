@@ -13,7 +13,7 @@ CSP API endpoints:
 
 The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI and Fibre Channel protocols.
 
-As of version 2.1.1 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 2.2.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -29,6 +29,7 @@ Topology is currently not supported by the HPE CSI Driver.
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver version.
 
+* [TrueNAS CSP v2.2.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.2.0) for HPE CSI Driver v2.2.0
 * [TrueNAS CSP v2.1.1](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.1.1) for HPE CSI Driver v2.1.1
 * [TrueNAS CSP v2.1.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.1.0) for HPE CSI Driver v2.1.0
 * [TrueNAS CORE CSP v2.0.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.0.0) for HPE CSI Driver v2.0.0
