@@ -48,8 +48,9 @@ class Handler:
         self.dataset_divider = '/'
         self.uri_slash = '%2f'
         self.resp_msg = '100 Continue'
-        self.target_basename = 'iqn.2011-08.org.truenas.ctl'
         self.target_portal = 'hpe-csi'
+
+        self.target_basename = environ.get('TARGET_BASENAME', 'iqn.2011-08.org.truenas.ctl')
 
         self.logger = logging.getLogger('{name}'.format(name=__name__))
         self.logger.setLevel(logging.DEBUG if environ.get(
