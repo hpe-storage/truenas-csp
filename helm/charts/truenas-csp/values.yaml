@@ -14,9 +14,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# Override TrueNAS target basename (default "iqn.2011-08.org.truenas.ctl")
-targetBasename: ""
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
