@@ -148,7 +148,7 @@ class Publish:
                 'serial_number': extent.get('naa').lstrip('0x'),
                 'target_names': [
                     '{base}:{target}'.format(
-                        base=api.target_basename, target=dataset_name)
+                        base=api.target_basename(), target=dataset_name)
                 ]
             }
 
@@ -426,7 +426,7 @@ class Tokens:
                 api.logger.info('Token created (not logged)')
             else:
                 resp.body = api.csp_error('Unconfigured',
-                                          'No iSCSI portal named {name} with comment {comment} found'.format(name=api.target_basename, comment=api.target_portal))
+                                          'No iSCSI portal named {name} with comment {comment} found'.format( name=api.target_basename(), comment=api.target_portal))
                 resp.status = falcon.HTTP_404
 
         except Exception:

@@ -48,9 +48,8 @@ class Handler:
         self.dataset_divider = '/'
         self.uri_slash = '%2f'
         self.resp_msg = '100 Continue'
+        self.default_target_basename = 'iqn.2011-08.org.truenas.ctl'
         self.target_portal = 'hpe-csi'
-
-        self.target_basename = environ.get('TARGET_BASENAME', 'iqn.2011-08.org.truenas.ctl')
 
         self.logger = logging.getLogger('{name}'.format(name=__name__))
         self.logger.setLevel(logging.DEBUG if environ.get(
@@ -181,6 +180,22 @@ class Handler:
             self.csp_error('Exception', traceback.format_exc())
 
         return {}
+
+    def target_basename(self):
+        self.get('iscsi/global')
+
+        rset = self.req_backend.json()
+        if rset is None:
+            self.logger.warning('iscsi/global configuration not found')
+            return self.default_target_basename
+
+        base = rset.get('basename')
+        if not base:
+            self.logger.warning('iscsi/global configuration has no basename')
+            return self.default_target_basename
+
+        self.logger.info('iscsi target basename: %s', base)
+        return base
 
     # pool/dataset, field=name, value=foo, attr=rawvalue
     def fetch(self, resource, **kwargs):
