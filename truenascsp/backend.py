@@ -29,6 +29,7 @@ import json
 import urllib3
 import requests
 import re
+import falcon
 from requests.auth import HTTPBasicAuth
 
 urllib3.disable_warnings()
@@ -48,7 +49,6 @@ class Handler:
         self.dataset_divider = '/'
         self.uri_slash = '%2f'
         self.resp_msg = '100 Continue'
-        self.default_target_basename = 'iqn.2011-08.org.truenas.ctl'
         self.target_portal = 'hpe-csi'
 
         self.logger = logging.getLogger('{name}'.format(name=__name__))
@@ -186,13 +186,13 @@ class Handler:
 
         rset = self.req_backend.json()
         if rset is None:
-            self.logger.warning('iscsi/global configuration not found')
-            return self.default_target_basename
+            raise falcon.HTTPInternalServerError(
+                'Cannot discern iscsi target basename', 'iscsi/global configuration not found')
 
         base = rset.get('basename')
         if not base:
-            self.logger.warning('iscsi/global configuration has no basename')
-            return self.default_target_basename
+            raise falcon.HTTPInternalServerError(
+                'Cannot discern iscsi target basename', 'iscsi/global configuration has no basename')
 
         self.logger.info('iscsi target basename: %s', base)
         return base
