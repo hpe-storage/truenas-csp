@@ -1,7 +1,7 @@
 StorageClass:
   FromFile: "truenas-csp/e2e/storage-class-rwo.yaml"
 SnapshotClass:
-  FromFile: "truenas-csp/e2e/volume-snapshot-class.yaml"
+  FromFile: "./volume-snapshot-class.yaml"
 RequiredAccessModes:
   - ReadWriteOnce
 DriverInfo:
@@ -20,6 +20,11 @@ DriverInfo:
     singleNodeVolume: false
     RWX: false
     pvcDataSource: true
+  SupportedFsType:
+    ext4: {}
+    ext3: {}
+    xfs: {}
+    btrfs: {}
   SupportedSizeRange: 
     Min: 1Gi 
     Max: 32Gi
