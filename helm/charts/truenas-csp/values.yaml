@@ -4,11 +4,14 @@
 
 logDebug: false
 
+# Tunes the CSP backend API requests
+optimizeFor: "Default"
+
 image:
   repository: quay.io/datamattsson/truenas-csp
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v2.2.0"
+  tag: "v2.3.0"
 
 imagePullSecrets: []
 nameOverride: ""

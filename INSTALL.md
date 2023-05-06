@@ -4,12 +4,11 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 
 ## Prerequisites
 
-- HPE CSI Driver for Kubernetes version 2.2.0 or later
-- TrueNAS 12.0 BETA or later
-- TrueNAS SCALE 22.02 RC1 or later
+- TrueNAS 12.0 or later
+- TrueNAS SCALE 22.02 or later
 - FreeNAS 11.2-U3 or later
-- Kubernetes 1.20 or later
-- Helm 3.6 or later (optional, only needed if using Helm to install the CSP)
+- Kubernetes 1.23 or later
+- Helm 3.6 or later (recommended, only needed if using Helm to install the CSP)
 
 ### TrueNAS Container Storage Provider Helm Chart
 
@@ -26,15 +25,15 @@ The HPE CSI Driver may be installed using either a Helm Chart, Operator or direc
 Install HPE CSI Driver using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.2.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.2.0/hpe-csi-k8s-1.22.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-csi-k8s-1.26.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.2.0/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.3.0/truenas-csp.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
@@ -73,7 +72,7 @@ The Target Global Configuration needs to be updated with this Base Name:
 
 ![](https://hpe-storage.github.io/truenas-csp/assets/global-target.png)
 
-- Base Name: `iqn.2011-08.org.truenas.ctl`
+- Base Name: `iqn.2011-08.org.truenas.ctl` or `iqn.2005-10.org.freenas.ctl`
 
 **Hint:** If TrueNAS/FreeNAS is not giving you the option to select nothing but 0.0.0.0 in the portal configuration is because you're using DHCP. Only statically assigned addresses can be used in the picker.
 

@@ -1,6 +1,7 @@
 E2E=./e2e.test
 TEST_PREFIX=External.Storage.\[Driver:.csi.hpe.com\].*
 FOCUS=
+GINKGO_EXTRA_ARGS=
 SYSTEM=$(shell uname -s | tr A-Z a-z)
 ARCH=$(shell uname -m)
 ifeq ($(ARCH), x86_64)
@@ -25,7 +26,9 @@ endif
 
 rwo: dl
 	mkdir -p reports-rwo
-	$(E2E) --ginkgo.v \
+	$(E2E) $(GINKGO_EXTRA_ARGS) \
+	       --ginkgo.fail-fast \
+	       --ginkgo.v \
 	       --ginkgo.timeout=12h \
                --ginkgo.focus='$(TEST_PREFIX)$(FOCUS)' \
 	       --ginkgo.skip='\[Disruptive\]|\[Serial\]' \
@@ -35,7 +38,9 @@ rwo: dl
 
 rwx: dl
 	mkdir -p reports-rwx
-	$(E2E) --ginkgo.v \
+	$(E2E) $(GINKGO_EXTRA_ARGS) \
+	       --ginkgo.fail-fast \
+	       --ginkgo.v \
 	       --ginkgo.timeout=12h \
                --ginkgo.focus='$(TEST_PREFIX)$(FOCUS)' \
 	       --ginkgo.skip='\[Feature:|\[Disruptive\]|\[Serial\]' \

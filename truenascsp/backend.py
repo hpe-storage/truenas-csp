@@ -30,6 +30,7 @@ import urllib3
 import requests
 import re
 from requests.auth import HTTPBasicAuth
+from ipaddress import IPv4Interface
 
 urllib3.disable_warnings()
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -48,8 +49,11 @@ class Handler:
         self.dataset_divider = '/'
         self.uri_slash = '%2f'
         self.resp_msg = '100 Continue'
-        self.target_basename = 'iqn.2011-08.org.truenas.ctl'
+        self.target_basenames = [ 'iqn.2011-08.org.truenas.ctl', 'iqn.2005-10.org.freenas.ctl' ]
         self.target_portal = 'hpe-csi'
+        self.backend_retries = 30
+        self.backend_delay = 1.5
+        self.access_name = '{dataset_name}'
 
         self.logger = logging.getLogger('{name}'.format(name=__name__))
         self.logger.setLevel(logging.DEBUG if environ.get(
@@ -105,6 +109,40 @@ class Handler:
         self.logger.debug('content_type: %s', req.content_type)
         headers = json.dumps(req.headers).replace(self.token, "*****")
         self.logger.debug('     headers: %s', headers)
+
+    def ipaddrs_to_networks(self, ipaddrs):
+        interfaces = self.fetch('interface')
+
+        networks = []
+
+        for ip in ipaddrs:
+            for interface in interfaces:
+                for alias in interface['aliases']:
+                    if alias.get('address') == ip:
+                        networks.append(IPv4Interface('{ip}/{nm}'.format(ip=ip,
+                            nm=alias.get('netmask'))).network.with_prefixlen)
+        return networks
+
+    def cidrs_to_hosts(self, cidrs):
+
+        hosts = []
+
+        for cidr in cidrs:
+            hosts.append(str(IPv4Interface(cidr).ip))
+        return hosts
+
+    def version(self):
+        version = self.fetch('system/version')
+        self.logger.debug('Version: %s', version)
+
+        if "TrueNAS-SCALE" in version:
+            return "SCALE"
+        if "TrueNAS" in version:
+            return "CORE"
+        if "FreeNAS" in version:
+            return "LEGACY"
+
+        return None
 
     def url_tmpl(self, uri):
         return '{schema}://{backend}{api}{uri}'.format(schema=self.backend_schema,
@@ -167,7 +205,7 @@ class Handler:
             csi_resp = {
                 'id': self.xslt_dataset_to_volume(snapshot.get('id')),
                 'name': snapshot.get('snapshot_name'),
-                'size': int(snapshot.get('properties').get('volsize').get('rawvalue')),
+                #'size': int(snapshot.get('properties').get('volsize').get('rawvalue')),
                 'description': 'Snapshot of {parent}'.format(parent=self.xlst_name_from_id(snapshot.get('dataset'))),
                 'volume_id': self.xslt_dataset_to_volume(snapshot.get('dataset')),
                 'volume_name': self.xlst_name_from_id(snapshot.get('dataset')),
@@ -192,6 +230,9 @@ class Handler:
                 return None
 
             rset = self.req_backend.json()
+
+            if not isinstance(rset, list):
+                rset = [ rset ]
 
             for item in rset:
                 if kwargs.get('field') and kwargs.get('value'):

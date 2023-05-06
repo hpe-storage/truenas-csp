@@ -7,6 +7,7 @@
     "default": {},
     "required": [
         "logDebug",
+	"optimizeFor",
         "image",
         "imagePullSecrets",
         "nameOverride",
@@ -30,6 +31,14 @@
             "title": "The logDebug schema",
             "description": "An explanation about the purpose of this instance.",
             "default": false
+        },
+        "optimizeFor": {
+            "$id": "#/properties/optimizeFor",
+            "type": "string",
+            "title": "The optimizeFor schema",
+            "description": "An explanation about the purpose of this instance.",
+	    "enum": [ "FreeNAS", "Default" ],
+            "default": "Default"
         },
         "image": {
             "$id": "#/properties/image",
