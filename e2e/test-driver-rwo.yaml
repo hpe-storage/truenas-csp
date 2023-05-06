@@ -2,10 +2,10 @@ StorageClass:
   FromFile: "truenas-csp/e2e/storage-class-rwo.yaml"
 SnapshotClass:
   FromFile: "./volume-snapshot-class.yaml"
-RequiredAccessModes:
-  - ReadWriteOnce
 DriverInfo:
   Name: csi.hpe.com
+  RequiredAccessModes:
+    - ReadWriteOnce
   Capabilities:
     persistence: true
     block: true
@@ -20,6 +20,8 @@ DriverInfo:
     singleNodeVolume: false
     RWX: false
     pvcDataSource: true
+    FSResizeFromSourceNotSupported: true
+    readWriteOncePod: false
   SupportedFsType:
     ext4: {}
     ext3: {}

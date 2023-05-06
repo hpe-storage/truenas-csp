@@ -36,6 +36,16 @@ spec:
             - name: LOG_DEBUG
               value: "1"
           {{- end }}
+          {{ if eq .Values.optimizeFor "FreeNAS" -}}
+          command:
+            - gunicorn
+          args:
+            - "--bind=0.0.0.0:8080"
+            - "--workers=1"
+            - "--threads=1"
+            - "--timeout=15"
+            - "csp:SERVE"
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080

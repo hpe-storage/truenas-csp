@@ -6,4 +6,4 @@ ADD requirements.txt /
 RUN pip3 install -r requirements.txt
 ADD truenascsp/*.py /app/
 WORKDIR /app
-ENTRYPOINT [ "gunicorn", "-b", "0.0.0.0:8080", "csp:SERVE" ]
+ENTRYPOINT [ "gunicorn", "--workers", "3", "--bind", "0.0.0.0:8080", "--timeout", "60", "csp:SERVE" ]

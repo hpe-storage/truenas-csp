@@ -1,13 +1,13 @@
 StorageClass:
   FromFile: "truenas-csp/e2e/storage-class-rwx.yaml"
-RequiredAccessModes:
-  - ReadWriteMany
 DriverInfo:
   Name: csi.hpe.com
+  RequiredAccessModes:
+    - ReadWriteMany
   Capabilities:
     persistence: true
     block: false
-    fsGroup: true
+    fsGroup: false
     exec: true
     snapshotDataSource: false
     multipods: true
@@ -18,6 +18,8 @@ DriverInfo:
     singleNodeVolume: false
     RWX: true
     pvcDataSource: false
+    FSResizeFromSourceNotSupported: true
+    readWriteOncePod: false
   SupportedSizeRange: 
     Min: 1Gi 
     Max: 32Gi

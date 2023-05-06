@@ -4,12 +4,9 @@ This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes
 
 ## Prerequisites
 
-- Upstream Kubernetes version >= 1.20
-- Most Kubernetes distributions are supported
-- Recent Ubuntu, SLES, CentOS or RHEL compute nodes connected to their respective official package repositories
-- Helm 3 (Version >= 3.6.x required)
-- TrueNAS 12.0 BETA or later
-- TrueNAS SCALE 22.02 RC1 or later
+- Fulfill all requirements of the [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver/2.3.0) v2.3.0
+- TrueNAS 12.0 or later
+- TrueNAS SCALE 22.02 or later
 - FreeNAS 11.2-U3 or later
 
 This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver) application versions. Other requirements and prerequisites may be found on that chart.
@@ -20,9 +17,12 @@ This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https
 
 The following table lists the configurable parameters of the chart and their default values.
 
-| Parameter                 | Description                                                            | Default          |
-|---------------------------|------------------------------------------------------------------------|------------------|
-| logDebug                  | Log extensive debug information on stdout of the CSP                   | false            |
+| Parameter                 | Description                                                                        | Default   |
+|---------------------------|------------------------------------------------------------------------------------|-----------|
+| logDebug                  | Log extensive debug information on stdout of the CSP                               | false     |
+| optimizeFor               | Set to "FreeNAS" to apply minimal amount of threads and short timeouts for the CSP | "Default" |
+
+**Hint:** The usual Helm decorations are available for the CSP, see [values.yaml](https://github.com/hpe-storage/truenas-csp/blob/master/helm/charts/truenas-csp/values.yaml).
 
 ### Installing the chart
 
@@ -38,8 +38,7 @@ helm repo update
 Install the latest chart:
 
 ```
-kubectl create ns hpe-storage
-helm install my-truenas-csp truenas-csp/truenas-csp -n hpe-storage
+helm install my-truenas-csp truenas-csp/truenas-csp --create-namespace -n hpe-storage
 ```
 
 **Note**: Pay attention to what the latest version of the chart is. If it's labeled with `prerelease` and a "beta" tag, add `--version X.Y.Z` to install a "stable" chart.
