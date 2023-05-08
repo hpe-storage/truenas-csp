@@ -29,6 +29,7 @@ Topology is currently not supported by the HPE CSI Driver.
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver version.
 
+* [TrueNAS CSP v2.3.10](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.10) for HPE CSI Driver v2.3.0
 * [TrueNAS CSP v2.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.0) for HPE CSI Driver v2.3.0
 * [TrueNAS CSP v2.2.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.2.0) for HPE CSI Driver v2.2.0
 * [TrueNAS CSP v2.1.1](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.1.1) for HPE CSI Driver v2.1.1
@@ -36,6 +37,10 @@ Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes
 * [TrueNAS CORE CSP v2.0.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.0.0) for HPE CSI Driver v2.0.0
 * [TrueNAS CORE CSP v1.4.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v1.4.0) for HPE CSI Driver v1.4.0
 * [TrueNAS CORE CSP v1.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v1.3.0) for HPE CSI Driver v1.3.0
+
+# Version schemes
+
+The TrueNAS CSP will track an official release of the HPE CSI Driver for Kubernetes, i.e v2.2.0 and there will be a subsequent release of the TrueNAS CSP v2.2.0. If a patch release of the CSP is needed, the patch position will be incremented by 10. I.e v2.2.10. The last digit will represent the patch version of the CSI driver. The [Helm chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) is it's own deliverable and has its own semantic versioning.
 
 # Install
 

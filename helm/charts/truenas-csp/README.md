@@ -4,12 +4,11 @@ This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes
 
 ## Prerequisites
 
-- Fulfill all requirements of the [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver/2.3.0) v2.3.0
 - TrueNAS 12.0 or later
 - TrueNAS SCALE 22.02 or later
 - FreeNAS 11.2-U3 or later
 
-This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver) application versions. Other requirements and prerequisites may be found on that chart.
+This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver) application versions. Other requirements and prerequisites such as supported host OS and Kubernetes versions may be found on that chart.
 
 **IMPORTANT:** Do **NOT** install this chart if the HPE CSI Driver for Kubernetes is already installed!
 
