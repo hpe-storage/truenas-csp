@@ -111,7 +111,7 @@ class Handler:
         self.logger.debug('     headers: %s', headers)
 
     def ipaddrs_to_networks(self, ipaddrs):
-        interfaces = self.fetch('interface')
+        interfaces = self.fetch('interface', returnBy=list)
 
         networks = []
 
@@ -255,11 +255,20 @@ class Handler:
 
         if len(results) == 1:
             self.logger.debug('API fetch caught 1 item')
-            return results[0]
+
+            if kwargs.get('returnBy') == list:
+                return results
+            else:
+                return results[0]
 
         if len(results) > 1:
             self.logger.debug('API fetch caught %d items', len(results))
-            return results
+
+            if kwargs.get('returnBy') == dict:
+                self.logger.debug('Returning first row in result set')
+                return results[0]
+            else:
+                return results
 
         return None
 

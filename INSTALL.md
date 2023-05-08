@@ -7,7 +7,6 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 - TrueNAS 12.0 or later
 - TrueNAS SCALE 22.02 or later
 - FreeNAS 11.2-U3 or later
-- Kubernetes 1.23 or later
 - Helm 3.6 or later (recommended, only needed if using Helm to install the CSP)
 
 ### TrueNAS Container Storage Provider Helm Chart
@@ -22,9 +21,10 @@ The HPE CSI Driver may be installed using either a Helm Chart, Operator or direc
 
 **Note:** The [TrueNAS Container Storage Provider Helm Chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) has a dependency on the HPE CSI Driver for Kubernetes Helm Chart and makes it a lot easier to manage configuration during runtime. Consider using Helm to deploy the CSP over the YAML manifests.
 
-Install HPE CSI Driver using manifests:
+Install HPE CSI Driver using manifests (assumes latest supported Kubernetes version of the CSI driver):
 
 ```
+kubectl create ns hpe-storage
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-linux-config.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-csi-k8s-1.26.yaml
 ```
@@ -32,8 +32,7 @@ kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/m
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.3.0/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.3.10/truenas-csp.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
@@ -52,7 +51,7 @@ metadata:
 stringData:
   serviceName: truenas-csp-svc
   servicePort: "8080"
-  username: hpe-csi (username is a no-op)
+  username: hpe-csi (username is a no-op when using API key)
   password: API key or root password of TrueNAS/FreeNAS appliance
   backend: Management IP address of TrueNAS/FreeNAS appliance
 ```
@@ -66,15 +65,15 @@ The TrueNAS/FreeNAS appliance require an iSCSI portal to be configured manually 
 ![](https://hpe-storage.github.io/truenas-csp/assets/portal.png)
 
 - Description: `hpe-csi`
-- IP Address: List of IPs used for iSCSI (do NOT use 0.0.0.0)
+- IP Address: List of IPs used for iSCSI (do **NOT** use 0.0.0.0)
 
-The Target Global Configuration needs to be updated with this Base Name:
+The Target Global Configuration needs to have an explicit Base Name:
 
 ![](https://hpe-storage.github.io/truenas-csp/assets/global-target.png)
 
 - Base Name: `iqn.2011-08.org.truenas.ctl` or `iqn.2005-10.org.freenas.ctl`
 
-**Hint:** If TrueNAS/FreeNAS is not giving you the option to select nothing but 0.0.0.0 in the portal configuration is because you're using DHCP. Only statically assigned addresses can be used in the picker.
+**Hint:** If TrueNAS/FreeNAS is not giving you the option to select nothing but 0.0.0.0 in the portal configuration is because DHCP is being used. Only statically assigned addresses can be used in the picker.
 
 Also make sure the iSCSI service is started and enabled at boot on TrueNAS/FreeNAS.
 

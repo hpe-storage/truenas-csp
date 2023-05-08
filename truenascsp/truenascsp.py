@@ -128,7 +128,7 @@ class Publish:
 
             # grab host
             initiator = api.fetch(
-                'iscsi/initiator', field='comment', value=content.get('host_uuid'))
+                'iscsi/initiator', field='comment', value=content.get('host_uuid'), returnBy=dict)
 
             # grab portal IPs
             portal = api.fetch('iscsi/portal', field='comment',
@@ -440,10 +440,7 @@ class Hosts:
                 req_backend['auth_network'] = api.cidrs_to_hosts(content.get('networks'))
 
             initiator = api.fetch(
-                'iscsi/initiator', field='comment', value=content.get('uuid'))
-
-            # rare condition (race during initial creation)
-            initiator = initiator[0] if isinstance(initiator, list) else initiator
+                'iscsi/initiator', field='comment', value=content.get('uuid'), returnBy=dict)
 
             if initiator:
                 api.put(
