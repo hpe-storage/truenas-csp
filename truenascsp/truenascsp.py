@@ -390,6 +390,7 @@ class Volumes:
             else:
                 req_backend = {
                     'type': 'VOLUME',
+                    # FIXME
                     'comments': content.get('description', api.dataset_defaults.get('description')),
                     'name': '{root}/{volume_name}'.format(volume_name=content.get('name'), root=root),
                     'volsize': '{size}'.format(size=int(content.get('size'))),

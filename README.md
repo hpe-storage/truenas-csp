@@ -29,6 +29,7 @@ Topology is currently not supported by the HPE CSI Driver.
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver version.
 
+* [TrueNAS CSP v2.4.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.0) for HPE CSI Driver v2.4.0
 * [TrueNAS CSP v2.3.10](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.10) for HPE CSI Driver v2.3.0
 * [TrueNAS CSP v2.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.0) for HPE CSI Driver v2.3.0
 * [TrueNAS CSP v2.2.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.2.0) for HPE CSI Driver v2.2.0
@@ -79,15 +80,6 @@ make clean
 ```
 
 **Note:** FreeNAS, TrueNAS CORE and SCALE should pass all tests when configured properly.
-
-## Multiarch build
-
-Since v2.3.0 a multi-arch image is made available, to build locally:
-
-```
-docker buildx build --progress=plain --platform=linux/amd64,linux/arm64 \
-  --provenance=false --push -t truenas-csp:v0.0.0 .
-```
 
 # Limitations
 

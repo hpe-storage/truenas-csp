@@ -1,3 +1,11 @@
+ifndef IMAGE_TAG
+	IMAGE_TAG ?= edge
+endif
+
+ifndef REPO_NAME
+	REPO_NAME ?= quay.io/datamattsson/truenas-csp
+endif
+
 username = hpe-csi
 csp = http://localhost:8080
 curl = curl
@@ -6,11 +14,13 @@ curl_args = '-v'
 all:
 	python3 -m py_compile truenascsp/*.py
 	rm -rf truenascsp/__pycache__
-	docker build -t quay.io/datamattsson/truenas-csp:edge .
-
+	docker build -t $(REPO_NAME):$(IMAGE_TAG) .
+push:
+	docker buildx build --platform=linux/amd64,linux/arm64 --progress=plain \
+                --provenance=false --push -t $(REPO_NAME):$(IMAGE_TAG) .
 run:
 	docker rm -f truenas-csp || true
-	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 quay.io/datamattsson/truenas-csp:edge
+	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 $(REPO_NAME):$(IMAGE_TAG)
 
 test:
 	# Delete host
