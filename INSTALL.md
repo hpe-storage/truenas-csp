@@ -25,14 +25,14 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.3.0/hpe-csi-k8s-1.26.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.4.2/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.4.2/hpe-csi-k8s-1.29.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.3.10/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.4.2/truenas-csp.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
@@ -88,7 +88,7 @@ All the ZVols created on TrueNAS/FreeNAS will by default be created with these p
 - compression: LZ4
 - sparse: "true"
 - sync: STANDARD
-- description: "Dataset created by HPE CSI Driver for Kubernetes"
+- description: "Dataset created by HPE CSI Driver for Kubernetes as {pv} in {namespace} from {pvc}"
 - root: tank
 
 These parameters may be overridden in the `StorageClass` or have the defaults altered by passing environment variables to the CSP runtime with the convention of `DEFAULT_COMPRESSION=OFF`. 
