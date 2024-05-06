@@ -1,25 +1,32 @@
 StorageClass:
-  FromFile: "truenas-csp/e2e/storage-class-rwx.yaml"
+  FromFile: "csi-e2e/tests/storage-class-rwo.yaml"
+SnapshotClass:
+  FromFile: "./volume-snapshot-class.yaml"
 DriverInfo:
   Name: csi.hpe.com
   RequiredAccessModes:
     - ReadWriteMany
   Capabilities:
     persistence: true
-    block: false
-    fsGroup: false
+    block: true
+    fsGroup: true
     exec: true
-    snapshotDataSource: false
+    snapshotDataSource: true
     multipods: true
     controllerExpansion: false
-    nodeExpansion: false
+    nodeExpansion: true
     volumeLimits: false
     topology: false
     singleNodeVolume: false
-    RWX: true
-    pvcDataSource: false
+    RWX: false
+    pvcDataSource: true
     FSResizeFromSourceNotSupported: true
     readWriteOncePod: false
+  SupportedFsType:
+    ext4: {}
+    ext3: {}
+    xfs: {}
+    btrfs: {}
   SupportedSizeRange: 
     Min: 1Gi 
     Max: 32Gi

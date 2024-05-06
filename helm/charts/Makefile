@@ -1,5 +1,6 @@
 CHART_TARGET:=../../docs
 
+.PHONY: truenas-csp
 all: truenas-csp
 truenas-csp:
 	helm dependency update $@

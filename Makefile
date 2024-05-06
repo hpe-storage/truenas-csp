@@ -23,20 +23,36 @@ run:
 	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 $(REPO_NAME):$(IMAGE_TAG)
 
 test:
-	# Delete host
-	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' -H 'X-Auth-Token: $(password)' \
+
+	# Delete host 1
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' -H 'X-Auth-Token: $(password)' \
 		-H 'X-Array-IP: $(backend)' \
-		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db0 -f || true
-	
-	# Unpublish volume
-	$(curl) $(curl_args) -XPUT -d @tests/csp/unpublish.yaml -H 'Content-Type: application/json' \
+		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db0 -f
+
+	# Delete host 2
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' -H 'X-Auth-Token: $(password)' \
+		-H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db1 -f
+
+	# Unpublish volume host 1
+	- $(curl) $(curl_args) -XPUT -d @tests/csp/unpublish.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
-		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/unpublish -f || true
+		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/unpublish -f
+
+	# Unpublish volume host 2
+	- $(curl) $(curl_args) -XPUT -d @tests/csp/unpublish-multi.yaml -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/unpublish -f
 
 	# Delete volume
-	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' -H 'X-Auth-Token: $(password)' \
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' -H 'X-Auth-Token: $(password)' \
 		-H 'X-Array-IP: $(backend)' \
-		$(csp)/containers/v1/volumes/tank_my-new-volume16 -f || true
+		$(csp)/containers/v1/volumes/tank_my-new-volume16 -f
+
+	# Delete thick volume
+	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes/tank_my-new-volume18 -f
 
 	# "Create" password
 	$(curl) $(curl_args) -XPOST \
@@ -49,8 +65,13 @@ test:
 	# Fail auth
 	$(curl) $(curl_args) -XGET -H 'Content-Type: application/json' $(csp)/containers/v1/tokens/123 -f || true
 
-	# Create host
+	# Create host 1
 	$(curl) $(curl_args) -XPOST -d @tests/csp/initiator.yaml -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/hosts -f
+
+	# Create host 2
+	$(curl) $(curl_args) -XPOST -d @tests/csp/initiator-multi.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/hosts -f
 
@@ -58,6 +79,13 @@ test:
 	$(curl) $(curl_args) -XPOST -d @tests/csp/volume.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes -f
+
+	# Create thick volume
+	$(curl) $(curl_args) -XPOST -d @tests/csp/volume-thick.yaml -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes -f
+
+	sleep 120
 
 	# Get volume
 	$(curl) $(curl_args) -XGET -H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
@@ -76,8 +104,13 @@ test:
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes/tank_my-new-volume16 -f || true
 
-	# Publish volume
+	# Publish volume host 1
 	$(curl) $(curl_args) -XPUT -d @tests/csp/publish.yaml -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/publish -f
+
+	# Publish volume host 2
+	$(curl) $(curl_args) -XPUT -d @tests/csp/publish-multi.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/publish -f
 	
@@ -111,8 +144,14 @@ test:
 	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/snapshots/tank_my-new-volume16@my-first-snapshot -f
-	# Unpublish volume
+
+	# Unpublish volume host 1
 	$(curl) $(curl_args) -XPUT -d @tests/csp/unpublish.yaml -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/unpublish -f
+
+	# Unpublish volume host 2
+	$(curl) $(curl_args) -XPUT -d @tests/csp/unpublish-multi.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes/tank_my-new-volume16/actions/unpublish -f
 
@@ -121,7 +160,17 @@ test:
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes/tank_my-new-volume16 -f
 
-	# Delete host
+	# Delete thick volume
+	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/volumes/tank_my-new-volume18 -f
+
+	# Delete host 1
 	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db0 -f
+
+	# Delete host 2
+	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db1 -f

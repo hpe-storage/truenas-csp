@@ -337,11 +337,21 @@
         "resources": {
             "$id": "#/properties/resources",
             "type": "object",
-            "title": "The resources schema",
-            "description": "An explanation about the purpose of this instance.",
-            "default": {},
-            "required": [],
-            "additionalProperties": false
+	    "title": "resource requests and limits",
+	    "additionalProperties": false,
+            "required": ["limits", "requests"],
+            "description": "See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "title": "resource limits",
+                    "default": {}
+		},
+                "requests": {
+                    "type": "object",
+                    "title": "resource requests",
+                    "default": {} }
+            }
         },
         "nodeSelector": {
             "$id": "#/properties/nodeSelector",
@@ -392,7 +402,8 @@
                         "nimble",
                         "primera",
                         "alletra6000",
-                        "alletra9000"
+                        "alletra9000",
+                        "alletraStorageMP"
                     ],
                     "properties": {
                         "nimble": {
@@ -420,6 +431,13 @@
                             "$id": "#/properties/hpe-csi-driver/properties/disable/properties/alletra9000",
                             "type": "boolean",
                             "title": "The alletra9000 schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "alletraStorageMP": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/alletraStorageMP",
+                            "type": "boolean",
+                            "title": "The alletraStorageMP schema",
                             "description": "An explanation about the purpose of this instance.",
                             "default": false
                         }

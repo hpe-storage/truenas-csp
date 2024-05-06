@@ -1,3 +1,4 @@
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/truenas-csp)](https://artifacthub.io/packages/search?repo=truenas-csp)
 # TrueNAS Container Storage Provider
 
 The TrueNAS Container Storage Provider (CSP) is an API gateway to provide iSCSI block storage provisioning using the [HPE CSI Driver for Kubernetes](https://github.com/hpe-storage/csi-driver). It allows you to use [TrueNAS](https://www.truenas.com) and [FreeNAS](https://www.freenas.org/) to provide persistent storage using iSCSI to Kubernetes.
@@ -29,6 +30,7 @@ Topology is currently not supported by the HPE CSI Driver.
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver version.
 
+* [TrueNAS CSP v2.4.2](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.2) for HPE CSI Driver v2.4.2
 * [TrueNAS CSP v2.4.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.0) for HPE CSI Driver v2.4.0
 * [TrueNAS CSP v2.3.10](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.10) for HPE CSI Driver v2.3.0
 * [TrueNAS CSP v2.3.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.0) for HPE CSI Driver v2.3.0
@@ -70,16 +72,7 @@ make test backend=<IP address of management interface on the TrueNAS appliance> 
 
 **Note:** None of the tests are comprehensive nor provide full coverage and should be considered equivalent to "Does the light come on?".
 
-A Kubernetes e2e test `Makefile` is provided in [e2e](e2e) for both RWO and RWX modes. Ensure everything is [installed](INSTALL.md) and a `Secret` named "truenas-secret" exists in the "hpe-storage" `Namespace`. Then run:
-
-```
-cd e2e
-make rwo
-make rwx
-make clean
-```
-
-**Note:** FreeNAS, TrueNAS CORE and SCALE should pass all tests when configured properly.
+See [e2e/README.md](e2e/README.md) how to configure and run Kubernetes e2e test suite focused the CSI tests for the TrueNAS CSP.
 
 # Limitations
 
@@ -90,6 +83,8 @@ These are the known limitations.
 - **Dataset naming:** The underscore character `_` is used as an internal separator for naming snapshots and datasets. Do NOT use underscores in your pool or dataset names.
 - **FreeNAS ctl_max_luns:** FreeNAS has an internal limit of 1024 LUNs. That number increments for every new LUN created, even if deleted. The iSCSI Target service won't start and it leads to all sorts of problems. This is the log message on the console: `requested LUN ID 1031 is higher than ctl_max_luns` (this system had two iSCSI Targets).
 - **FreeNAS iSCSI Target:** On systems with a high degree of churn, especially during e2e testing, the iSCSI Target sometimes croak and needs to be restarted. It's recommended to starve the CSP to ease the API requests against FreeNAS and let failures be handled by CSI driver and Kubernetes (see [Helm chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)).
+- **KubeVirt support:** Live migration for KubeVirt is not yet implemented in the CSP. Running KubeVirt without live migration on RWO claims should be fine. This will be implemented in a later released.
+- **iSCSI CHAP:** Using CHAP with the HPE CSI Driver will not propagate to the TrueNAS CSP. This will be implemented in a later release of the TrueNAS CSP.
 
 # Need help?
 
@@ -125,7 +120,7 @@ FreeNAS(R) is (C) 2011-2023 iXsystems
 
 TrueNAS CSP is released under the [MIT License](LICENSE).
 
-(C) Copyright 2023 Hewlett Packard Enterprise Development LP.
+(C) Copyright 2024 Hewlett Packard Enterprise Development LP.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

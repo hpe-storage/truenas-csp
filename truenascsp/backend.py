@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# (C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+# (C) Copyright 2024 Hewlett Packard Enterprise Development LP.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ class Handler:
         self.resp_msg = '100 Continue'
         self.target_basenames = [ 'iqn.2011-08.org.truenas.ctl', 'iqn.2005-10.org.freenas.ctl' ]
         self.target_portal = 'hpe-csi'
-        self.backend_retries = 30
+        self.backend_retries = 15
         self.backend_delay = 1.5
         self.access_name = '{dataset_name}'
 
@@ -63,10 +63,10 @@ class Handler:
             'deduplication': environ.get('DEFAULT_DEDUPLICATION', 'OFF'),
             'compression': environ.get('DEFAULT_COMPRESSION', 'LZ4'),
             'sync': environ.get('DEFAULT_SYNC', 'STANDARD'),
-            'sparse': environ.get('DEFAULT_SPARSE', 1),
+            'sparse': environ.get('DEFAULT_SPARSE', "true"),
             'root': environ.get('DEFAULT_ROOT', 'tank'),
             'volblocksize': environ.get('DEFAULT_VOLBLOCKSIZE', '8K'),
-            'description': environ.get('DEFAULT_DESCRIPTION', 'Dataset created by HPE CSI Driver for Kubernetes')
+            'description': environ.get('DEFAULT_DESCRIPTION', 'Dataset created by HPE CSI Driver for Kubernetes as {pv} in {namespace} from {pvc}')
         }
 
         self.dataset_mutables = [
@@ -270,7 +270,9 @@ class Handler:
             else:
                 return results
 
-        return None
+        self.logger.debug('API fetch caught %d items', len(results))
+
+        return []
 
     def uri_id(self, resource, rid):
         if resource in ('zfs/snapshot', 'pool/dataset'):
@@ -343,16 +345,18 @@ class Handler:
         try:
             self.logger.debug('TrueNAS DELETE request URI: %s', uri)
             body = kwargs.get('body') if kwargs.get('body') else None 
+            self.logger.debug('Embedding content in DELETE body: %s', body)
             if type(auth) == HTTPBasicAuth:
                 self.req_backend = requests.delete(self.url_tmpl(uri),
-                                    json=body, auth=auth, headers=headers, verify=False)
+                                    data=body, auth=auth, headers=headers, verify=False)
             else:
                 auth.update(headers)
                 self.req_backend = requests.delete(self.url_tmpl(uri),
-                                    json=kwargs.get('body'), headers=auth, verify=False)
+                                    data=body, headers=auth, verify=False)
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
-            self.logger.debug('TrueNAS response: %s', self.req_backend.status_code)
+            self.logger.debug('TrueNAS response code: %s', self.req_backend.status_code)
+            self.logger.debug('TrueNAS response msg: %s', self.req_backend.content.decode('utf-8'))
             self.req_backend.raise_for_status()
         except Exception:
             self.csp_error('Backend Request (DELETE) Exception',
