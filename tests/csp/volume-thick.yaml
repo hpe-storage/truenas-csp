@@ -1,12 +1,12 @@
 {
-    "name": "my-new-volume16",
+    "name": "my-new-volume18",
     "size": "1073741824",
-    "description": "my first volume {pvc}",
+    "description": "my thick volume {pvc}",
     "config": {
-        "csi.storage.k8s.io/pvc/name": "my-first-volume",
+        "csi.storage.k8s.io/pvc/name": "my-thick-volume",
         "compression": "GZIP-1",
         "deduplication": "OFF",
-        "sparse": "true",
+        "sparse": "false",
         "volblocksize": "16K",
         "sync": "ALWAYS",
         "zpool": "tank"

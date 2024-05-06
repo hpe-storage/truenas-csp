@@ -15,8 +15,7 @@ parameters:
   csi.storage.k8s.io/node-stage-secret-namespace: hpe-storage
   csi.storage.k8s.io/provisioner-secret-name: truenas-secret
   csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
-  description: "Volume created by the HPE CSI Driver for Kubernetes"
-  accessProtocol: iscsi
-  root: tank
+  description: "Volume created by the HPE CSI Driver for Kubernetes from {namespace}"
+  root: tank/csi-e2e
 reclaimPolicy: Delete
 allowVolumeExpansion: true

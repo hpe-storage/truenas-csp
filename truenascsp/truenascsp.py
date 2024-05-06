@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# (C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+# (C) Copyright 2024 Hewlett Packard Enterprise Development LP.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,9 @@ import backend
 
 class Unpublish:
     def on_put(self, req, resp, volume_id):
+
         api = req.context
+        content = req.media
 
         try:
             dataset_name = api.xslt_volume_id_to_name(volume_id)
@@ -42,59 +44,96 @@ class Unpublish:
             target = api.fetch('iscsi/target', field='name',
                                value=access_name)
 
+            api.logger.debug('Target being unpublished: %s', target)
+
+            # get initiator from uuid
+            initiator = api.fetch(
+                'iscsi/initiator', field='comment', value=content.get('host_uuid'), returnBy=dict)
+
+            api.logger.debug('Initiator requested to be unpublished: %s', initiator)
+
             # FIXME: Only Unpublish the host being requested and
             #        delete target, target/extent and extent if
             #        groups = []
 
             if target:
-                api.delete(
-                    'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))))
 
-                target_deletion = api.backend_retries
+                initiators = target.get('groups')
 
-                while api.fetch('iscsi/target', field='name',
-                                value=access_name) and target_deletion:
-                    sleep(api.backend_delay)
-                    target_deletion -= 1
+                # Remove ID from groups, if empty, delete the rest.
+                for initiator_removal in initiators:
+                    if initiator_removal['initiator'] == initiator.get('id'):
+                        initiators.remove(initiator_removal)
+                        break
+
+                api.logger.debug('Initiators left intact: %s', initiators)
+
+                if not initiators:
                     api.delete(
                         'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))))
-                    api.logger.debug('Target deletion retried: %s', volume_id)
 
-                # get target to extent mapping
-                mapping = api.fetch('iscsi/targetextent',
-                                    field='target', value=str(target.get('id')))
+                    target_deletion = api.backend_retries
 
-                if mapping:
-                    api.delete(
-                        'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))))
-
-                    targetextent_deletion = api.backend_retries
-
-                    while api.fetch('iscsi/targetextent',
-                            field='target', value=str(target.get('id'))) and targetextent_deletion:
+                    while api.fetch('iscsi/target', field='name',
+                                    value=access_name) and target_deletion:
                         sleep(api.backend_delay)
-                        targetextent_deletion -= 1
+                        target_deletion -= 1
+                        api.delete(
+                            'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))))
+                        api.logger.debug('Target deletion retried: %s', volume_id)
+
+                    # Force deletion
+                    if not target_deletion:
+                        api.delete(
+                            'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))), body='true')
+
+                    # get target to extent mapping
+                    mapping = api.fetch('iscsi/targetextent',
+                                        field='target', value=str(target.get('id')))
+
+                    if mapping:
                         api.delete(
                             'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))))
-                        api.logger.debug('Target/extent deletion retried: %s', volume_id)
 
-                # get extent
-                extent = api.fetch('iscsi/extent', field='name',
-                                   value=access_name)
+                        targetextent_deletion = api.backend_retries
 
-                if extent:
-                    api.delete(
-                        'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))))
+                        while api.fetch('iscsi/targetextent',
+                                field='target', value=str(target.get('id'))) and targetextent_deletion:
+                            sleep(api.backend_delay)
+                            targetextent_deletion -= 1
+                            api.delete(
+                                'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))))
+                            api.logger.debug('Target/extent deletion retried: %s', volume_id)
 
-                    extent_deletion = api.backend_retries
+                        # Force deletion
+                        if not targetextent_deletion:
+                            api.delete(
+                                'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))), body='true')
 
-                    while api.fetch('iscsi/extent', field='name',
-                                    value=access_name) and extent_deletion:
-                        sleep(api.backend_delay)
-                        extent_deletion -= 1
+                    # get extent
+                    extent = api.fetch('iscsi/extent', field='name',
+                                       value=access_name)
+
+                    if extent:
                         api.delete(
                             'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))))
-                        api.logger.debug('Extent deletion retried: %s', volume_id)
+
+                        extent_deletion = api.backend_retries
+
+                        while api.fetch('iscsi/extent', field='name',
+                                        value=access_name) and extent_deletion:
+                            sleep(api.backend_delay)
+                            extent_deletion -= 1
+                            api.delete(
+                                'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))))
+                            api.logger.debug('Extent deletion retried: %s', volume_id)
+
+                        if not extent_deletion:
+                            api.delete(
+                                'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))), body='{"force":true, "remove":true}')
+                else:
+                    # Replace group list
+                    api.logger.debug('Replacing group list on target: %s', 'placeholder')
 
             resp.status = falcon.HTTP_204
             api.logger.info('Volume unpublished: %s', volume_id)
@@ -177,14 +216,17 @@ class Publish:
                 target_id = api.req_backend.json()
                 api.logger.debug('Target updated: %s', target_id.get('name'))
 
-                # extent needs to be part of response to CSI driver
-                extent = api.fetch('iscsi/extent', field='name',
-                                   value=access_name)
             else:
 
                 api.post('iscsi/target', req_backend)
                 target = api.req_backend.json()
 
+            # extent needs to be part of response to CSI driver
+            extent = api.fetch('iscsi/extent', field='name',
+                               value=access_name)
+
+            # If extent is empty, try create a new extent
+            if not extent:
                 # add extent to dataset
                 req_backend = {
                     'type': 'DISK',
@@ -320,7 +362,7 @@ class Volume:
 
                     # FIXME: Deal with snapshots
                     api.delete(api.uri_id('pool/dataset',
-                                          dataset.get('name')), body={'recursive': True})
+                                          dataset.get('name')), body='{"recursive": true, "force": true}')
 
                     # things might be pending
                     dataset_deletion = api.backend_retries
@@ -330,7 +372,7 @@ class Volume:
                         dataset_deletion -= 1
                         sleep(api.backend_delay)
                         api.delete(api.uri_id('pool/dataset',
-                          dataset.get('name')), body={'recursive': True})
+                          dataset.get('name')), body='{"recursive": true, "force": true}')
                         api.logger.info('Dataset deletion retried: %s', volume_id)
 
                     resp.status = api.resp_msg
@@ -391,11 +433,15 @@ class Volumes:
                 req_backend = {
                     'type': 'VOLUME',
                     # FIXME
-                    'comments': content.get('description', api.dataset_defaults.get('description')),
+                    'comments': content.get('description', api.dataset_defaults.get('description')).format(
+                        pvc=content.get('config').get('csi.storage.k8s.io/pvc/name', 'pvc'),
+                        namespace=content.get('config').get('csi.storage.k8s.io/pvc/namespace', 'namespace'),
+                        pv=content.get('config').get('csi.storage.k8s.io/pv/name', 'pv')
+                        ),
                     'name': '{root}/{volume_name}'.format(volume_name=content.get('name'), root=root),
                     'volsize': '{size}'.format(size=int(content.get('size'))),
                     'volblocksize': content.get('config').get('volblocksize', api.dataset_defaults.get('volblocksize')),
-                    'sparse': bool(content.get('config').get('sparse', api.dataset_defaults.get('sparse'))),
+                    'sparse': json.loads(content.get('config').get('sparse', api.dataset_defaults.get('sparse')).lower()),
                     'deduplication': content.get('config').get('deduplication', api.dataset_defaults.get('deduplication')),
                     'sync': content.get('config').get('sync', api.dataset_defaults.get('sync')),
                     'compression':  content.get('config').get('compression', api.dataset_defaults.get('compression'))

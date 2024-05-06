@@ -1,11 +1,15 @@
 StorageClass:
-  FromFile: "truenas-csp/e2e/storage-class-rwo.yaml"
+  FromFile: "csi-e2e/tests/storage-class-rwo.yaml"
 SnapshotClass:
   FromFile: "./volume-snapshot-class.yaml"
 DriverInfo:
   Name: csi.hpe.com
   RequiredAccessModes:
     - ReadWriteOnce
+      # UNDER TEST
+      #  TopologyKeys:
+      #  -  csi.hpe.com/zone
+      #  NumAllowedTopologies: 1
   Capabilities:
     persistence: true
     block: true
@@ -16,7 +20,8 @@ DriverInfo:
     controllerExpansion: false
     nodeExpansion: true
     volumeLimits: false
-    topology: false
+    # UNDER TEST
+    #    topology: true
     singleNodeVolume: false
     RWX: false
     pvcDataSource: true

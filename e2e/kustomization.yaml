@@ -1,0 +1,22 @@
+namespace: csi-e2e
+configMapGenerator:
+- name: storage-class-rwo.yaml
+  files:
+  - tests/storage-class-rwo.yaml
+- name: storage-class-rwx.yaml
+  files:
+  - tests/storage-class-rwx.yaml
+- name: volume-snapshot-class.yaml
+  files:
+  - tests/volume-snapshot-class.yaml
+- name: test-driver-rwo.yaml
+  files:
+  - tests/test-driver-rwo.yaml
+- name: test-driver-rwx.yaml
+  files:
+  - tests/test-driver-rwx.yaml
+- name: test-driver-rwx-block.yaml
+  files:
+  - tests/test-driver-rwx-block.yaml
+generatorOptions:
+  disableNameSuffixHash: true

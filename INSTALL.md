@@ -129,3 +129,5 @@ Set `root` to a dataset that will serve as the base dataset where the ZVols will
 **Important:** Do NOT use underscore "`_`" in your root dataset for now, it will most likely break.
 
 Once the `Secret` and `StorageClass` have been created, all functionality is provided by the HPE CSI Driver and is [documented here](https://scod.hpedev.io/csi_driver/using.html).
+
+**Tip:** If `VolumeSnapshots` are needed, follow the guidance in HPE CSI Driver documentation on how to [enable CSI snapshots](https://scod.hpedev.io/csi_driver/using.html#enabling_csi_snapshots) and [how to use them](https://scod.hpedev.io/csi_driver/using.html#using_csi_snapshots).

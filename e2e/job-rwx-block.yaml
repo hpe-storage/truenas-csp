@@ -1,0 +1,49 @@
+---
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: csi-e2e
+  namespace: csi-e2e
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: csi-e2e
+          image: quay.io/datamattsson/csi-e2e:v2.4.0
+          command:
+          - runner.sh
+          args:
+          - --ginkgo.fail-fast
+          - --ginkgo.v
+          - --ginkgo.timeout=12h
+          - --ginkgo.focus=External.Storage.\[Driver:.csi.hpe.com\].*block.volmode.*
+          - --non-blocking-taints=node-role.kubernetes.io/control-plane,node-role.kubernetes.io/etcd,node-role.kubernetes.io/master
+          - -storage.testdriver=test-driver-rwx-block.yaml
+          - -report-dir=../report
+          - --ginkgo.skip=\[Feature:|\[Disruptive\]|\[Serial\]|.*two.volumes.with.different.volume.mode.*
+          env:
+          - name: ARG_DEBUG
+            value: ""
+          - name: FORCE_VERSION
+            value: ""
+          volumeMounts:
+          - name: tests
+            mountPath: /cut/csi-e2e/tests
+      volumes:
+        - name: tests
+          projected:
+            sources:
+            - configMap:
+                name: storage-class-rwx.yaml
+            - configMap:
+                name: storage-class-rwo.yaml
+            - configMap:
+                name: volume-snapshot-class.yaml
+            - configMap:
+                name: test-driver-rwx.yaml
+            - configMap:
+                name: test-driver-rwo.yaml
+            - configMap:
+                name: test-driver-rwx-block.yaml

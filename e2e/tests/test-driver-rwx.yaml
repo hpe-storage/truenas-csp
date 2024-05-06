@@ -1,0 +1,27 @@
+StorageClass:
+  FromFile: "csi-e2e/tests/storage-class-rwx.yaml"
+SnapshotClass:
+  FromFile: "./volume-snapshot-class.yaml"
+DriverInfo:
+  Name: csi.hpe.com
+  RequiredAccessModes:
+    - ReadWriteMany
+  Capabilities:
+    persistence: true
+    block: false
+    fsGroup: false
+    exec: true
+    snapshotDataSource: true
+    multipods: true
+    controllerExpansion: false
+    nodeExpansion: false
+    volumeLimits: false
+    topology: false
+    singleNodeVolume: false
+    RWX: true
+    pvcDataSource: false
+    FSResizeFromSourceNotSupported: true
+    readWriteOncePod: false
+  SupportedSizeRange: 
+    Min: 4Gi 
+    Max: 32Gi
