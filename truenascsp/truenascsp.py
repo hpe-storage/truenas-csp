@@ -24,15 +24,19 @@
 
 from time import time
 from time import sleep
+from multiprocessing import Lock
 import re
 import traceback
 import json
 import falcon
 import backend
 
+publish_lock = Lock()
+unpublish_lock = Lock()
+
 class Unpublish:
     def on_put(self, req, resp, volume_id):
-
+        unpublish_lock.acquire()
         api = req.context
         content = req.media
 
@@ -44,107 +48,62 @@ class Unpublish:
             target = api.fetch('iscsi/target', field='name',
                                value=access_name)
 
-            api.logger.debug('Target being unpublished: %s', target)
+            api.logger.debug('Target being updated: %s', target)
 
-            # get initiator from uuid
-            initiator = api.fetch(
-                'iscsi/initiator', field='comment', value=content.get('host_uuid'), returnBy=dict)
-
-            api.logger.debug('Initiator requested to be unpublished: %s', initiator)
-
-            # FIXME: Only Unpublish the host being requested and
-            #        delete target, target/extent and extent if
-            #        groups = []
+            # find ID of initiator being removed
+            initiator = {}
 
             if target:
+                # get initiators from host
+                host = api.fetch(
+                    'iscsi/initiator', field='comment', value=content.get('host_uuid'))
 
-                initiators = target.get('groups')
+                # get initiator from access_name
+                initiator = api.fetch(
+                    'iscsi/initiator', field='comment', value=access_name)
 
-                # Remove ID from groups, if empty, delete the rest.
-                for initiator_removal in initiators:
-                    if initiator_removal['initiator'] == initiator.get('id'):
-                        initiators.remove(initiator_removal)
-                        break
+                if host and initiator:
+                    api.logger.debug('Initiator host requested to be unpublished: %s', host.get('id'))
+                    api.logger.debug('Initiator target requested to be unpublished: %s', initiator.get('id'))
 
-                api.logger.debug('Initiators left intact: %s', initiators)
+                    new_initiators = []
 
-                if not initiators:
-                    api.delete(
-                        'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))))
+                    # Remove host initiator from target initiator
+                    for initiator_preserve in initiator.get('initiators'):
+                        if initiator_preserve not in host.get('initiators'):
+                            new_initiators.append(initiator_preserve)
+                            api.logger.debug('Initiator to be preserved: %s', initiator_preserve)
 
-                    target_deletion = api.backend_retries
+                    api.logger.debug('Initiators left intact: %s', new_initiators)
 
-                    while api.fetch('iscsi/target', field='name',
-                                    value=access_name) and target_deletion:
-                        sleep(api.backend_delay)
-                        target_deletion -= 1
-                        api.delete(
-                            'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))))
-                        api.logger.debug('Target deletion retried: %s', volume_id)
+                    req_backend = {'initiators': new_initiators }
 
-                    # Force deletion
-                    if not target_deletion:
-                        api.delete(
-                            'iscsi/target/id/{tid}'.format(tid=str(target.get('id'))), body='true')
-
-                    # get target to extent mapping
-                    mapping = api.fetch('iscsi/targetextent',
-                                        field='target', value=str(target.get('id')))
-
-                    if mapping:
-                        api.delete(
-                            'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))))
-
-                        targetextent_deletion = api.backend_retries
-
-                        while api.fetch('iscsi/targetextent',
-                                field='target', value=str(target.get('id'))) and targetextent_deletion:
-                            sleep(api.backend_delay)
-                            targetextent_deletion -= 1
-                            api.delete(
-                                'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))))
-                            api.logger.debug('Target/extent deletion retried: %s', volume_id)
-
-                        # Force deletion
-                        if not targetextent_deletion:
-                            api.delete(
-                                'iscsi/targetextent/id/{teid}'.format(teid=str(mapping.get('id'))), body='true')
-
-                    # get extent
-                    extent = api.fetch('iscsi/extent', field='name',
-                                       value=access_name)
-
-                    if extent:
-                        api.delete(
-                            'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))))
-
-                        extent_deletion = api.backend_retries
-
-                        while api.fetch('iscsi/extent', field='name',
-                                        value=access_name) and extent_deletion:
-                            sleep(api.backend_delay)
-                            extent_deletion -= 1
-                            api.delete(
-                                'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))))
-                            api.logger.debug('Extent deletion retried: %s', volume_id)
-
-                        if not extent_deletion:
-                            api.delete(
-                                'iscsi/extent/id/{eid}'.format(eid=str(extent.get('id'))), body='{"force":true, "remove":true}')
                 else:
-                    # Replace group list
-                    api.logger.debug('Replacing group list on target: %s', 'placeholder')
+                    req_backend = {'initiators': [] }
+
+                if initiator: # if initiator was deleted manually
+                    if req_backend.get('initiators'):
+                        api.put('iscsi/initiator/id/{tid}'.format(tid=initiator.get('id')), req_backend)
+                        api.logger.info('Updating IQNs on target initiator: %s', access_name)
+                    else:
+                        api.delete('iscsi/initiator/id/{tid}'.format(tid=initiator.get('id')))
+                        api.logger.info('Deleted target initiator: %s', access_name)
 
             resp.status = falcon.HTTP_204
             api.logger.info('Volume unpublished: %s', volume_id)
+
         except Exception:
             resp.body = api.csp_error(
                 'Exception during unpublish', traceback.format_exc())
             resp.status = falcon.HTTP_500
 
+        finally:
+            unpublish_lock.release()
+
 
 class Publish:
     def on_put(self, req, resp, volume_id):
+        publish_lock.acquire()
         api = req.context
 
         try:
@@ -154,120 +113,43 @@ class Publish:
             dataset_id = api.xslt_id_to_dataset(volume_id)
             access_name = api.access_name.format(dataset_name=dataset_name)
 
-            # Need to ensure a usable basename
-            iscsi_config = api.fetch('iscsi/global')
+            publish = api.apply_publish(access_name, content=content,
+                    dataset=api.fetch('pool/dataset', field='id',
+                    value=dataset_id))
 
-            if iscsi_config.get('basename') not in api.target_basenames:
-                resp.body = api.csp_error('Misconfigured',
-                                          '{base} is not a valid basename, use {basenames}'.format(
-                                          base=iscsi_config.get('basename'),
-                                          basenames=' or '.join(api.target_basenames)))
-                resp.status = falcon.HTTP_500
-                return
-
-            # grab host
-            initiator = api.fetch(
-                'iscsi/initiator', field='comment', value=content.get('host_uuid'), returnBy=dict)
-
-            # grab portal IPs
-            portal = api.fetch('iscsi/portal', field='comment',
-                               value=api.target_portal)
-
-            discovery_ips = []
-
-            for listen in portal.get('listen'):
-                if listen.get('ip') == '0.0.0.0':
-                    resp.body = api.csp_error('Misconfigured',
-                                              'Using 0.0.0.0 as listenining inferface on the portal is not supported.')
-                    resp.status = falcon.HTTP_500
-                    return
-
-                discovery_ips.append(listen.get('ip'))
-
-            # portal grouping
-            portal_group = {
-                'portal': portal.get('id'),
-                'initiator': initiator.get('id')
-            }
-
-            # access group
-            req_backend = {
-                'name': access_name,
-                'groups': [portal_group]
-            }
-
-            system_version = api.version()
-
-            # treat SCALE
-            if system_version == "SCALE":
-                req_backend['auth_networks'] = api.ipaddrs_to_networks(discovery_ips)
-
-            # check if target already exist
-            target = api.fetch('iscsi/target', field='name',
-                               value=access_name)
-
-            if target:
-                # FIXME: merge groups (support RWX block)
-                #        see Unpublish and manage auth_nework(s)
-                #        req_backend['groups'] += target['groups']
-
-                # update target groups
-                api.put('iscsi/target/id/{tid}'.format(tid=target.get('id')), req_backend)
-                target_id = api.req_backend.json()
-                api.logger.debug('Target updated: %s', target_id.get('name'))
-
-            else:
-
-                api.post('iscsi/target', req_backend)
-                target = api.req_backend.json()
-
-            # extent needs to be part of response to CSI driver
-            extent = api.fetch('iscsi/extent', field='name',
-                               value=access_name)
-
-            # If extent is empty, try create a new extent
-            if not extent:
-                # add extent to dataset
-                req_backend = {
-                    'type': 'DISK',
-                    'comment': 'Managed by HPE CSI Driver for Kubernetes',
-                    'name': access_name,
-                    'disk': 'zvol/{dataset_id}'.format(dataset_id=dataset_id)
-                }
-
-                api.post('iscsi/extent', req_backend)
-                extent = api.req_backend.json()
-
-                # add target to extent
-                req_backend = {
-                    'target': target.get('id'),
-                    'extent': extent.get('id'),
-                    'lunid': 0
-                }
-
-                api.post('iscsi/targetextent', req_backend)
+            api.logger.debug('Backend publish results: %s', publish)
+            api.logger.debug('Frontend publish content: %s', content)
 
             # respond to CSI
-            csi_resp = {
-                'discovery_ips': discovery_ips,
-                'access_protocol': 'iscsi',
-                'lun_id': 0,
-                'serial_number': extent.get('naa').lstrip('0x'),
-                'target_names': [
-                    '{base}:{access_name}'.format(
-                        base=iscsi_config.get('basename'),
-                        access_name=access_name)
-                ]
-            }
+            if publish.get('target', {}).get('extent', {}).get('naa') and publish.get('iscsi_config', {}).get('basename'):
+                csi_resp = {
+                    'discovery_ips': api.discovery_ips(),
+                    'access_protocol': 'iscsi',
+                    'lun_id': 0,
+                    'serial_number': publish.get('target').get('extent').get('naa').lstrip('0x'),
+                    'target_names': [
+                        '{base}:{access_name}'.format(
+                            base=publish.get('iscsi_config').get('basename'),
+                            access_name=access_name)
+                    ]
+                }
 
-            resp.body = json.dumps(csi_resp)
-            resp.status = falcon.HTTP_200
+                resp.body = json.dumps(csi_resp)
+                resp.status = falcon.HTTP_200
+            else:
+                resp.body = api.csp_error('Exception',
+                                          'Unable to publish volume: {trace}'.format(trace=traceback.format_exc()))
+                resp.status = falcon.HTTP_500
 
             api.logger.debug('CSP response: %s', resp.body)
             api.logger.info('Volume published: %s', volume_id)
+
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
             resp.status = falcon.HTTP_500
+
+        finally:
+            publish_lock.release()
 
 
 class Volume:
@@ -348,6 +230,10 @@ class Volume:
         api = req.context
 
         try:
+            dataset_name = api.xslt_volume_id_to_name(volume_id)
+            access_name = api.access_name.format(dataset_name=dataset_name)
+
+            # delete dataset
             dataset = api.fetch('pool/dataset', field='name',
                                 value=api.xslt_id_to_dataset(volume_id))
 
@@ -456,9 +342,11 @@ class Volumes:
                 resp.status = falcon.HTTP_500
                 return
 
+            res = api.create_target(dataset, content=content)
             csi_resp = api.dataset_to_volume(dataset)
             resp.body = json.dumps(csi_resp)
 
+            api.logger.debug('Target details: %s', res)
             api.logger.debug('CSP response: %s', resp.body)
             api.logger.info('Volume created: %s', csi_resp.get('name'))
 
@@ -475,29 +363,7 @@ class Hosts:
         content = req.media
 
         try:
-            req_backend = {
-                'comment': content.get('uuid'),
-                'initiators': content.get('iqns'),
-            }
-
-            # CORE and FreeNAS
-            system_version = api.version()
-
-            if system_version == "CORE" or system_version == "LEGACY":
-                req_backend['auth_network'] = api.cidrs_to_hosts(content.get('networks'))
-
-            initiator = api.fetch(
-                'iscsi/initiator', field='comment', value=content.get('uuid'), returnBy=dict)
-
-            if initiator:
-                api.put(
-                    'iscsi/initiator/id/{id}'.format(id=initiator.get('id')), req_backend)
-                api.logger.info('Host updated: %s', content.get('uuid'))
-            else:
-                api.post('iscsi/initiator', req_backend)
-                api.logger.info('Host created: %s', content.get('uuid'))
-
-            payload = api.req_backend.json()
+            payload = api.apply_initiator(content.get('uuid'), content=content)
 
             csi_resp = {
                 'id': payload.get('id'),
@@ -511,6 +377,8 @@ class Hosts:
             resp.body = json.dumps(csi_resp)
 
             api.logger.debug('CSP response: %s', resp.body)
+            api.logger.info('Host initiator created: %s', payload.get('comment'))
+
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
             resp.status = falcon.HTTP_500
@@ -526,9 +394,9 @@ class Hosts:
                 api.delete(
                     'iscsi/initiator/id/{id}'.format(id=str(initiator.get('id'))))
                 resp.status = api.resp_msg
-                api.logger.info('Host deleted: %s', initiator.get('comment'))
+                api.logger.info('Host initiator deleted: %s', initiator.get('comment'))
             else:
-                api.logger.info('Host not found: %s', host_id)
+                api.logger.info('Host initiator not found: %s', host_id)
                 resp.status = falcon.HTTP_404
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
@@ -540,6 +408,22 @@ class Tokens:
         api = req.context
 
         try:
+            if '0.0.0.0' in api.discovery_ips():
+                resp.body = api.csp_error('Unconfigured',
+                                          'Using 0.0.0.0 as listenining inferface on the portal is not supported.')
+                resp.status = falcon.HTTP_404
+                return
+
+            iscsi_config = api.fetch('iscsi/global')
+
+            if not api.valid_iscsi_basename(iscsi_config.get('basename')):
+                resp.body = api.csp_error('Unconfigured',
+                                          '{base} is not a valid basename, use {basenames}'.format(
+                                          base=iscsi_config.get('basename'),
+                                          basenames=' or '.join(api.target_basenames)))
+                resp.status = falcon.HTTP_404
+                return
+
             portal = api.fetch('iscsi/portal', field='comment',
                                value=api.target_portal)
 
@@ -677,9 +561,10 @@ class Snapshot:
 
         try:
             snapshot = api.fetch('zfs/snapshot', field='id',
-                                 value=api.xslt_id_to_dataset(snapshot_id))
+                                 value=api.xslt_id_to_dataset(snapshot_id),
+                                 returnBy=dict)
 
-            if snapshot:
+            if snapshot and isinstance(snapshot, dict):
                 snapshot_clones = api.backend_retries
 
                 # pretend snapshot is deleted if it has clones, but wait first
