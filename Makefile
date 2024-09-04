@@ -50,7 +50,7 @@ test:
 		$(csp)/containers/v1/volumes/tank_my-new-volume16 -f
 
 	# Delete thick volume
-	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes/tank_my-new-volume18 -f
 
@@ -84,8 +84,6 @@ test:
 	$(curl) $(curl_args) -XPOST -d @tests/csp/volume-thick.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes -f
-
-	sleep 120
 
 	# Get volume
 	$(curl) $(curl_args) -XGET -H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
@@ -166,11 +164,11 @@ test:
 		$(csp)/containers/v1/volumes/tank_my-new-volume18 -f
 
 	# Delete host 1
-	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db0 -f
 
 	# Delete host 2
-	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+	- $(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/hosts/41302701-0196-420f-b319-834a79891db1 -f

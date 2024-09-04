@@ -23,6 +23,7 @@
 #
 
 from os import environ
+from time import sleep
 import traceback
 import logging
 import json
@@ -156,13 +157,61 @@ class Handler:
         self.logger.error('%s: %s', code, message)
         return json.dumps(body)
 
-    def dataset_has_target(self, dataset):
-        target = self.fetch('iscsi/target', field='name',
-                            value=self.xlst_name_from_id(dataset))
-
-        if target:
-            return True
+    def initiator_exists(self, dataset):
+        initiator = self.fetch('iscsi/initiator', field='comment',
+                            value=self.xlst_name_from_id(dataset), returnBy=dict)
+        if isinstance(initiator, dict):
+            if initiator.get('initiators'):
+                return True
         return False
+
+    def apply_initiator(self, name, **kwargs):
+
+        content = {}
+        iqns = []
+        req_backend = {}
+
+        # content exist when creating a new host initiator
+        if kwargs.get('content'):
+            content = kwargs.get('content')
+
+        # iqns are passed when?
+        if kwargs.get('iqns'):
+            iqns = kwargs.get('iqns')
+
+        current_initiator = self.fetch('iscsi/initiator', field='comment',
+                            value=name, returnBy=dict)
+
+        # CORE and FreeNAS
+        system_version = self.version()
+
+        if content:
+            req_backend = {
+                'comment': name,
+                'initiators': content.get('iqns'),
+            }
+
+            if system_version == "CORE" or system_version == "LEGACY":
+                req_backend['auth_network'] = self.cidrs_to_hosts(content.get('networks'))
+
+        else:
+            req_backend = {
+                'comment': name,
+                'initiators': iqns,
+            }
+
+        if current_initiator:
+            if system_version == "CORE" or system_version == "LEGACY":
+                req_backend['auth_network'] = self.cidrs_to_hosts(current_initiator.get('auth_network'))
+            self.put(
+                'iscsi/initiator/id/{id}'.format(id=current_initiator.get('id')), req_backend)
+            self.logger.info('Initiator updated: %s', name)
+        else:
+            self.post('iscsi/initiator', req_backend)
+            self.logger.info('Initiator created: %s', name)
+
+        return self.req_backend.json()
+
 
     def xslt_volume_id_to_name(self, csi):
         return csi.split(self.volume_divider)[-1]
@@ -181,7 +230,7 @@ class Handler:
             volume = {
                 'base_snapshot_id': self.xslt_dataset_to_volume(dataset.get('origin').get('value')),
                 'volume_group_id': '',  # FIXME
-                'published': self.dataset_has_target(dataset.get('id')),
+                'published': self.initiator_exists(dataset.get('id')),
                 'description': dataset.get('comments').get('value') if dataset.get('comments') else '',
                 'size': int(dataset.get('volsize').get('rawvalue')),
                 'name': self.xlst_name_from_id(dataset.get('id')),
@@ -199,6 +248,23 @@ class Handler:
             self.csp_error('Exception', traceback.format_exc())
 
         return {}
+
+    def discovery_ips(self):
+
+        # grab portal IPs
+        portal = self.fetch('iscsi/portal', field='comment',
+                           value=self.target_portal)
+
+        discovery_ips = []
+
+        for listen in portal.get('listen'):
+            discovery_ips.append(listen.get('ip'))
+
+        return discovery_ips
+
+    def valid_iscsi_basename(self, basename):
+        if basename in self.target_basenames:
+            return True
 
     def snapshot_to_snapshot(self, snapshot):
         try:
@@ -236,13 +302,15 @@ class Handler:
 
             for item in rset:
                 if kwargs.get('field') and kwargs.get('value'):
+                    self.logger.debug('Looking for field={field} and value={value}'.format(field=kwargs.get('field'),
+                            value=kwargs.get('value')))
                     if kwargs.get('attr'):
                         value = item.get(kwargs.get('field')).get(
                             kwargs.get('attr'))
                     else:
                         value = item.get(kwargs.get('field'))
 
-                    if not isinstance(kwargs.get('value'), str):
+                    if not isinstance(kwargs.get('value'), str) and hasattr(kwargs.get('value'), 'match'):
                         if not kwargs.get('value').match(value):
                             continue
                     else:
@@ -270,9 +338,9 @@ class Handler:
             else:
                 return results
 
-        self.logger.debug('API fetch caught %d items', len(results))
+        self.logger.debug('API fetch caught %d items (last resort)', len(results))
 
-        return []
+        return results
 
     def uri_id(self, resource, rid):
         if resource in ('zfs/snapshot', 'pool/dataset'):
@@ -317,8 +385,9 @@ class Handler:
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.req_backend.raise_for_status()
         except Exception:
-            self.csp_error('Backend Request (POST) Exception',
+            self.csp_error('Backend Request (POST) Exception: {msg}'.format(msg=self.resp_msg),
                            traceback.format_exc())
+
 
     def put(self, uri, content):
         auth = self._get_auth()
@@ -336,8 +405,9 @@ class Handler:
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
             self.req_backend.raise_for_status()
         except Exception:
-            self.csp_error('Backend Request (PUT) Exception',
+            self.csp_error('Backend Request (PUT) Exception: {msg}'.format(msg=self.resp_msg),
                            traceback.format_exc())
+
 
     def delete(self, uri, **kwargs):
         headers = { 'Content-Type': 'application/json' }
@@ -346,6 +416,14 @@ class Handler:
             self.logger.debug('TrueNAS DELETE request URI: %s', uri)
             body = kwargs.get('body') if kwargs.get('body') else None 
             self.logger.debug('Embedding content in DELETE body: %s', body)
+
+            # ensure uri
+            exist = self.fetch(uri)
+
+            if not exist:
+                self.logger.info('{msg} {uri}'.format(msg=self.resp_msg, uri=uri))
+                return
+
             if type(auth) == HTTPBasicAuth:
                 self.req_backend = requests.delete(self.url_tmpl(uri),
                                     data=body, auth=auth, headers=headers, verify=False)
@@ -359,5 +437,229 @@ class Handler:
             self.logger.debug('TrueNAS response msg: %s', self.req_backend.content.decode('utf-8'))
             self.req_backend.raise_for_status()
         except Exception:
-            self.csp_error('Backend Request (DELETE) Exception',
+            self.csp_error('Backend Request (DELETE) Exception: {msg}'.format(msg=self.resp_msg),
                            traceback.format_exc())
+
+
+    def delete(self, uri, **kwargs):
+        headers = { 'Content-Type': 'application/json' }
+        auth = self._get_auth()
+        try:
+            self.logger.debug('TrueNAS DELETE request URI: %s', uri)
+            body = kwargs.get('body') if kwargs.get('body') else None
+            self.logger.debug('Embedding content in DELETE body: %s', body)
+
+            # ensure uri
+            exist = self.fetch(uri)
+
+            if not exist:
+                self.logger.info('{msg} {uri}'.format(msg=self.resp_msg, uri=uri))
+                return
+
+            if type(auth) == HTTPBasicAuth:
+                self.req_backend = requests.delete(self.url_tmpl(uri),
+                                    data=body, auth=auth, headers=headers, verify=False)
+            else:
+                auth.update(headers)
+                self.req_backend = requests.delete(self.url_tmpl(uri),
+                                    data=body, headers=auth, verify=False)
+            self.resp_msg = '{code} {reason}'.format(
+                code=str(self.req_backend.status_code), reason=self.req_backend.reason)
+            self.logger.debug('TrueNAS response code: %s', self.req_backend.status_code)
+            self.logger.debug('TrueNAS response msg: %s', self.req_backend.content.decode('utf-8'))
+            self.req_backend.raise_for_status()
+        except Exception:
+            self.csp_error('Backend Request (DELETE) Exception: {msg}'.format(msg=self.resp_msg),
+                           traceback.format_exc())
+
+        sleep(self.backend_delay) #FIXME
+
+
+    def get_target(self, access_name, **kwargs):
+
+        results = {}
+        targetextent = {}
+
+        target = self.fetch('iscsi/target', field='name', value=access_name)
+        extent = self.fetch('iscsi/extent', field='name', value=access_name)
+
+        if extent:
+            targetextent = self.fetch('iscsi/targetextent', field='extent',
+                    value=extent.get('id'))
+
+        if target and extent and targetextent:
+            results = {
+                        'target': target,
+                        'extent': extent,
+                        'targetextent': targetextent
+                      }
+
+        return results
+
+
+    def create_target(self, dataset, **kwargs):
+        content = kwargs.get('content')
+
+        try:
+            dataset_name = self.xlst_name_from_id(dataset.get('id'))
+            dataset_id = self.xslt_id_to_dataset(dataset.get('id'))
+            access_name = self.access_name.format(dataset_name=dataset_name)
+
+            discovery_ips = self.discovery_ips()
+
+            # grab portal IPs
+            portal = self.fetch('iscsi/portal', field='comment',
+                               value=self.target_portal)
+
+            # access group
+            req_backend = {
+                'name': access_name,
+            }
+
+            system_version = self.version()
+
+            # treat SCALE
+            if system_version == "SCALE":
+                req_backend['auth_networks'] = self.ipaddrs_to_networks(discovery_ips)
+
+            target = self.fetch('iscsi/target', field='name', value=access_name)
+
+            if not target:
+                target_created = self.backend_retries
+
+                while target_created:
+                    self.post('iscsi/target', req_backend)
+                    target = self.req_backend.json()
+                    if target.get('id'):
+                        self.logger.debug('Target created: %s', access_name)
+                        break
+                    else:
+                        self.logger.debug('Target debug: %s',
+                                self.req_backend.json())
+
+                    sleep(self.backend_delay)
+                    target_created -= 1
+
+            # add extent to dataset
+            req_backend = {
+                'type': 'DISK',
+                'comment': 'Managed by HPE CSI Driver for Kubernetes',
+                'name': access_name,
+                'disk': 'zvol/{dataset_id}'.format(dataset_id=dataset_id)
+            }
+
+            self.post('iscsi/extent', req_backend)
+            extent = self.req_backend.json()
+            self.logger.debug('Extent created: %s', extent)
+
+            # add target to extent
+            req_backend = {
+                'target': target.get('id'),
+                'extent': extent.get('id'),
+                'lunid': 0
+            }
+
+            self.post('iscsi/targetextent', req_backend)
+            targetextent = self.req_backend.json()
+            self.logger.debug('Target Extent created: %s', targetextent)
+
+            results = {
+                        'target': target,
+                        'extent': extent,
+                        'targetextent': targetextent
+                      }
+
+            return results
+
+        except Exception:
+            self.csp_error('Exception', traceback.format_exc())
+            return {}
+
+    def apply_publish(self, access_name, **kwargs):
+
+        content = {}
+        publish = {}
+        dataset = {}
+
+        if kwargs.get('content') and kwargs.get('dataset'):
+            content = kwargs.get('content')
+            dataset = kwargs.get('dataset')
+
+        if access_name and content and dataset:
+
+            # check if target already exist
+            # needed to preserve pre-2.5.0 functionality
+            existing_target = self.get_target(access_name, content=content)
+
+            if not existing_target:
+                create_target = self.create_target(dataset, content=content)
+                if create_target:
+                    publish['target'] = create_target
+            else:
+                    publish['target'] = existing_target
+
+            # grab host
+            host = self.fetch(
+                'iscsi/initiator', field='comment', value=content.get('host_uuid'), returnBy=dict)
+
+            if host:
+                self.logger.debug('Existing host initiator: %s', host.get('id'))
+
+            # grab initiator
+            initiator = self.fetch(
+                'iscsi/initiator', field='comment', value=access_name, returnBy=dict)
+
+            if initiator:
+                self.logger.debug('Existing target initiator: %s', initiator.get('id'))
+            else:
+                initiator = self.apply_initiator(access_name, iqns=[])
+
+            # merge host initiators to target initiators
+            initiators = list(set(initiator['initiators'] + host.get('initiators')))
+
+            # update initiator
+            req_backend = {
+                'initiators': initiators,
+            }
+
+            # CORE and FreeNAS
+            system_version = self.version()
+
+            if system_version == "CORE" or system_version == "LEGACY":
+                # merge host networks to target initiator
+                networks = list(set(self.cidrs_to_hosts(host.get('auth_network'))
+                    + initiator.get('auth_network')))
+                req_backend['auth_network'] = networks
+
+            self.put('iscsi/initiator/id/{id}'.format(id=initiator.get('id')), req_backend)
+            publish['initiator'] = self.req_backend.json()
+
+            # need portal
+            publish['portal'] = self.fetch('iscsi/portal', field='comment',
+                               value=self.target_portal)
+
+            # portal grouping
+            portal_group = {
+                'portal': publish.get('portal').get('id'),
+                'initiator': publish.get('initiator', {}).get('id')
+            }
+
+            # need global iSCSI config
+            publish['iscsi_config'] = self.fetch('iscsi/global')
+
+            # access group
+            req_backend = {
+                'name': access_name,
+                'groups': [ portal_group ]
+            }
+
+            target_id = publish.get('target', {}).get('target', {}).get('id')
+
+            if target_id:
+                # update target groups
+                self.put('iscsi/target/id/{tid}'.format(tid=target_id), req_backend)
+                publish['target']['target'] = self.req_backend.json()
+            else:
+                publish = {}
+
+        return publish
