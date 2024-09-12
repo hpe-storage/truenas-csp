@@ -17,5 +17,8 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
   description: "Volume created by the HPE CSI Driver for Kubernetes from {namespace}"
   root: tank/csi-e2e
+  chapSecretNamespace: hpe-storage
+  chapSecretName: my-chap-secret
+  authNetworks: 192.168.20.0/24, 192.168.10.0/24
 reclaimPolicy: Delete
 allowVolumeExpansion: true
