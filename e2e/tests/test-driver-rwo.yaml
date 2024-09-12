@@ -6,10 +6,10 @@ DriverInfo:
   Name: csi.hpe.com
   RequiredAccessModes:
     - ReadWriteOnce
-      # UNDER TEST
-      #  TopologyKeys:
-      #  -  csi.hpe.com/zone
-      #  NumAllowedTopologies: 1
+  # UNDER TEST
+  TopologyKeys:
+  -  csi.hpe.com/zone
+  NumAllowedTopologies: 1
   Capabilities:
     persistence: true
     block: true
@@ -21,7 +21,7 @@ DriverInfo:
     nodeExpansion: true
     volumeLimits: false
     # UNDER TEST
-    #    topology: true
+    topology: true
     singleNodeVolume: false
     RWX: false
     pvcDataSource: true

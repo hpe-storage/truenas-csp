@@ -1,0 +1,16 @@
+{
+    "name": "my-new-volume377",
+    "size": "1073741824",
+    "description": "my CHAP volume {pvc}",
+    "config": {
+        "csi.storage.k8s.io/pvc/name": "my-whatever-volume",
+        "authNetworks": "192.168.30.0/24, 192.168.31.0/24",
+        "compression": "GZIP-1",
+        "deduplication": "OFF",
+        "sparse": "true",
+        "volblocksize": "16K",
+        "sync": "ALWAYS",
+        "zpool": "tank"
+
+    }
+}

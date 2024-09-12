@@ -120,6 +120,8 @@ class Publish:
             api.logger.debug('Backend publish results: %s', publish)
             api.logger.debug('Frontend publish content: %s', content)
 
+            auth = api.fetch('iscsi/auth', field='tag', value=int(api.chap_tag), returnBy=dict)
+
             # respond to CSI
             if publish.get('target', {}).get('extent', {}).get('naa') and publish.get('iscsi_config', {}).get('basename'):
                 csi_resp = {
@@ -127,6 +129,8 @@ class Publish:
                     'access_protocol': 'iscsi',
                     'lun_id': 0,
                     'serial_number': publish.get('target').get('extent').get('naa').lstrip('0x'),
+                    'chap_user': auth.get('user', ''),
+                    'chap_password': auth.get('secret',''),
                     'target_names': [
                         '{base}:{access_name}'.format(
                             base=publish.get('iscsi_config').get('basename'),
@@ -342,7 +346,10 @@ class Volumes:
                 resp.status = falcon.HTTP_500
                 return
 
+            # create target
             res = api.create_target(dataset, content=content)
+
+            # respond to CSI driver
             csi_resp = api.dataset_to_volume(dataset)
             resp.body = json.dumps(csi_resp)
 
@@ -371,6 +378,8 @@ class Hosts:
                 'uuid': payload.get('comment'),
                 'iqns': payload.get('initiators'),
                 'networks': content.get('networks'),
+                'chap_user': content.get('chap_user', ''),
+                'chap_password': content.get('chap_password', ''),
                 'wwpns': []
             }
 

@@ -52,6 +52,7 @@ class Handler:
         self.resp_msg = '100 Continue'
         self.target_basenames = [ 'iqn.2011-08.org.truenas.ctl', 'iqn.2005-10.org.freenas.ctl' ]
         self.target_portal = 'hpe-csi'
+        self.chap_tag = environ.get('DEFAULT_CHAP_TAG', '4730274')
         self.backend_retries = 15
         self.backend_delay = 1.5
         self.access_name = '{dataset_name}'
@@ -165,6 +166,36 @@ class Handler:
                 return True
         return False
 
+
+    def apply_auths(self, chap_user, chap_password):
+        # check if auths already exist
+        auth = self.fetch('iscsi/auth', field='tag', value=int(self.chap_tag), returnBy=dict)
+
+        # if exists, check credentials
+        if auth:
+            self.logger.info('CHAP found: %s', self.chap_tag)
+
+            # if different, change them
+            if auth.get('user') != chap_user or auth.get('secret') != chap_password:
+                req_backend = {
+                        'user': chap_user,
+                        'secret': chap_password
+                        }
+                self.put('iscsi/auth/id/{aid}'.format(aid=auth.get('id')), req_backend)
+                self.logger.info('CHAP updated: %s', self.chap_tag)
+        else:
+            # if not, create it
+            req_backend = {
+                'tag': self.chap_tag,
+                'user': chap_user,
+                'secret': chap_password
+                }
+            self.post('iscsi/auth', req_backend)
+            self.logger.info('CHAP created: %s', self.chap_tag)
+
+        return self.req_backend.json()
+
+
     def apply_initiator(self, name, **kwargs):
 
         content = {}
@@ -175,9 +206,11 @@ class Handler:
         if kwargs.get('content'):
             content = kwargs.get('content')
 
-        # iqns are passed when?
-        if kwargs.get('iqns'):
-            iqns = kwargs.get('iqns')
+        chap_user = content.get('chap_user')
+        chap_password = content.get('chap_password')
+
+        if chap_user and chap_password:
+            self.apply_auths(chap_user, chap_password)
 
         current_initiator = self.fetch('iscsi/initiator', field='comment',
                             value=name, returnBy=dict)
@@ -340,6 +373,10 @@ class Handler:
 
         self.logger.debug('API fetch caught %d items (last resort)', len(results))
 
+        if len(results) == 0:
+            if kwargs.get('returnBy') == dict:
+                return {}
+
         return results
 
     def uri_id(self, resource, rid):
@@ -498,7 +535,12 @@ class Handler:
 
 
     def create_target(self, dataset, **kwargs):
-        content = kwargs.get('content')
+        # content will only be available at provisioning
+        content = kwargs.get('content', {})
+        config = content.get('config', {})
+
+        self.logger.debug('Content during target creation: %s', content)
+        self.logger.debug('Config during target creation: %s', config)
 
         try:
             dataset_name = self.xlst_name_from_id(dataset.get('id'))
@@ -520,7 +562,13 @@ class Handler:
 
             # treat SCALE
             if system_version == "SCALE":
-                req_backend['auth_networks'] = self.ipaddrs_to_networks(discovery_ips)
+                custom_networks = config.get('auth_networks')
+                if custom_networks:
+                    req_backend['auth_networks'] = self.auth_networks_validate(custom_networks)
+                    self.logger.debug('Using custom auth_networks: %s', req_backend['auth_networks'])
+                else:
+                    req_backend['auth_networks'] = self.ipaddrs_to_networks(discovery_ips)
+                    self.logger.debug('Using discovery auth_networks: %s', req_backend['auth_networks'])
 
             target = self.fetch('iscsi/target', field='name', value=access_name)
 
@@ -612,7 +660,7 @@ class Handler:
             if initiator:
                 self.logger.debug('Existing target initiator: %s', initiator.get('id'))
             else:
-                initiator = self.apply_initiator(access_name, iqns=[])
+                initiator = self.apply_initiator(access_name)
 
             # merge host initiators to target initiators
             initiators = list(set(initiator['initiators'] + host.get('initiators')))
@@ -644,6 +692,13 @@ class Handler:
                 'initiator': publish.get('initiator', {}).get('id')
             }
 
+            # deal with CHAP
+            auth = self.fetch('iscsi/auth', field='tag', value=int(self.chap_tag), returnBy=dict)
+
+            if auth:
+                portal_group['auth'] = self.chap_tag
+                portal_group['authmethod'] = "CHAP"
+
             # need global iSCSI config
             publish['iscsi_config'] = self.fetch('iscsi/global')
 
@@ -663,3 +718,14 @@ class Handler:
                 publish = {}
 
         return publish
+
+
+    def auth_networks_validate(self, networks):
+        res = []
+        cidrs = re.split(r'\s*,\s*', networks)
+
+        for cidr in cidrs:
+            if ipaddress.ip_network(cidr):
+                res.append(cidr)
+
+        return res
