@@ -25,8 +25,8 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.1/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.1/hpe-csi-k8s-1.31.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-csi-k8s-1.30.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
