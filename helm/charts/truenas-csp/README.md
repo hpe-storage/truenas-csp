@@ -16,10 +16,11 @@ This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https
 
 The following table lists the configurable parameters of the chart and their default values.
 
-| Parameter                 | Description                                                                        | Default   |
-|---------------------------|------------------------------------------------------------------------------------|-----------|
-| logDebug                  | Log extensive debug information on stdout of the CSP                               | false     |
-| optimizeFor               | Set to "FreeNAS" to apply minimal amount of threads and short timeouts for the CSP | "Default" |
+| Parameter                 | Description                                                                        | Default          |
+|---------------------------|------------------------------------------------------------------------------------|------------------|
+| logDebug                  | Log extensive debug information on stdout of the CSP                               | false            |
+| optimizeFor               | Set to "FreeNAS" to apply minimal amount of threads and short timeouts for the CSP | "Default"        |
+| images.trueNasCSP         | Use this particular fully qualified image name for the TrueNAS CSP                 | From values.yaml |
 
 **Hint:** The usual Helm decorations are available for the CSP, see [values.yaml](https://github.com/hpe-storage/truenas-csp/blob/master/helm/charts/truenas-csp/values.yaml).
 
@@ -66,7 +67,7 @@ Also, it's helpful to be familiar with [persistent storage concepts](https://kub
 
 ## Community
 
-Please file any issues, questions or feature requests you may have [here](https://github.com/hpe-storage/truenas-csp/issues) (do not use this facility for support inquiries of your storage product). You may also join our Slack community to chat with some of the HPE folks close to this project. We hang out in `#NimbleStorage`, `#3par-primera`, and `#Kubernetes`. Sign up at [slack.hpedev.io](https://slack.hpedev.io/) and login at [hpedev.slack.com](https://hpedev.slack.com/)
+Please file any issues, questions or feature requests you may have [here](https://github.com/hpe-storage/truenas-csp/issues) (do not use this facility for support inquiries of your storage product). You may also join our Slack community to chat with some of the HPE folks close to this project. We hang out in `#NimbleStorage`, `#3par-primera`, and `#Kubernetes`. Sign up at [developer.hpe.com](https://developer.hpe.com/slack-signup) and login at [hpedev.slack.com](https://hpedev.slack.com/)
 
 ## Contributing
 

@@ -25,14 +25,14 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.4.2/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.4.2/hpe-csi-k8s-1.29.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-csi-k8s-1.30.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.4.2/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.5.1/truenas-csp.yaml
 ```
 
 **Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
@@ -131,3 +131,11 @@ Set `root` to a dataset that will serve as the base dataset where the ZVols will
 Once the `Secret` and `StorageClass` have been created, all functionality is provided by the HPE CSI Driver and is [documented here](https://scod.hpedev.io/csi_driver/using.html).
 
 **Tip:** If `VolumeSnapshots` are needed, follow the guidance in HPE CSI Driver documentation on how to [enable CSI snapshots](https://scod.hpedev.io/csi_driver/using.html#enabling_csi_snapshots) and [how to use them](https://scod.hpedev.io/csi_driver/using.html#using_csi_snapshots).
+
+## CHAP support
+
+From v2.5.1 onwards iSCSI CHAP is supported. Follow the [guidance provided by HPE](https://scod.hpedev.io/csi_driver/index.html#iscsi_chap_considerations). Retrofitting CHAP into an existing cluster is not recommended. Bi-directional CHAP is not supported by the HPE CSI Driver and will not work with the TrueNAS CSP.
+
+CHAP on TrueNAS uses a hardcoded tag (4730274) for the authorization on the appliance. As long as that authorization exist on the appliance, CHAP details will be returned to the CSI driver and attempted to connect to the target. Do not create this tag manually, it will be created by TrueNAS CSP when enabled in the HPE CSI Driver.
+
+**Important:** If you need to rotate the CHAP authorization it's recommended to scale down all workloads, change the `Secret`, and scale the workloads up again. Otherwise existing iSCSI sessions may break.

@@ -29,8 +29,8 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ .Values.image.repository }}:{{ default .Values.image.tag }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: {{ .Values.images.trueNasCSP }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{ if .Values.logDebug -}}
           env:
             - name: LOG_DEBUG
