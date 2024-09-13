@@ -14,7 +14,7 @@ CSP API endpoints:
 
 The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI and Fibre Channel protocols.
 
-As of version 2.2.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 2.5.1 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -23,13 +23,13 @@ As of version 2.2.0 of the HPE CSI Driver, these parts of the CSI spec are curre
 - Volume Limits
 - Volume Stats
 - Ephemeral Local Volumes (not supported by the TrueNAS CSP, see [limitations](#limitations))
-
-Topology is currently not supported by the HPE CSI Driver.
+- Basic CSI Topology
 
 # Releases
 
-Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver version.
+Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver Helm chart version.
 
+* [TrueNAS CSP v2.5.1](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.5.1) for HPE CSI Driver v2.5.1
 * [TrueNAS CSP v2.4.2](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.2) for HPE CSI Driver v2.4.2
 * [TrueNAS CSP v2.4.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.0) for HPE CSI Driver v2.4.0
 * [TrueNAS CSP v2.3.10](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.3.10) for HPE CSI Driver v2.3.0
@@ -83,12 +83,11 @@ These are the known limitations.
 - **Dataset naming:** The underscore character `_` is used as an internal separator for naming snapshots and datasets. Do NOT use underscores in your pool or dataset names.
 - **FreeNAS ctl_max_luns:** FreeNAS has an internal limit of 1024 LUNs. That number increments for every new LUN created, even if deleted. The iSCSI Target service won't start and it leads to all sorts of problems. This is the log message on the console: `requested LUN ID 1031 is higher than ctl_max_luns` (this system had two iSCSI Targets).
 - **FreeNAS iSCSI Target:** On systems with a high degree of churn, especially during e2e testing, the iSCSI Target sometimes croak and needs to be restarted. It's recommended to starve the CSP to ease the API requests against FreeNAS and let failures be handled by CSI driver and Kubernetes (see [Helm chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)).
-- **KubeVirt support:** Live migration for KubeVirt is not yet implemented in the CSP. Running KubeVirt without live migration on RWO claims should be fine. This will be implemented in a later released.
-- **iSCSI CHAP:** Using CHAP with the HPE CSI Driver will not propagate to the TrueNAS CSP. This will be implemented in a later release of the TrueNAS CSP.
+- **CSI spec lag:** `VolumeAttributeClasses` (can be mitigated with the HPE CSI Driver Volume Mutator) and `VolumeGroups` are not implemented yet.
 
 # Need help?
 
-Please file an [issue](https://github.com/hpe-storage/truenas-csp/issues). This software is not supported by Hewlett Packard Enterprise. It's a voluntary community effort.
+Please file an [issue](https://github.com/hpe-storage/truenas-csp/issues). This software is not supported by Hewlett Packard Enterprise. It's a voluntary community effort
 
 # Contributing
 

@@ -8,7 +8,8 @@
     "required": [
         "logDebug",
 	"optimizeFor",
-        "image",
+        "images",
+	"imagePullPolicy",
         "imagePullSecrets",
         "nameOverride",
         "fullnameOverride",
@@ -40,41 +41,32 @@
 	    "enum": [ "FreeNAS", "Default" ],
             "default": "Default"
         },
-        "image": {
-            "$id": "#/properties/image",
+        "images": {
+            "$id": "#/properties/images",
             "type": "object",
-            "title": "The image schema",
+            "title": "The images schema",
             "description": "An explanation about the purpose of this instance.",
             "default": {},
             "required": [
-                "repository",
-                "pullPolicy",
-                "tag"
+                "trueNasCSP"
             ],
             "properties": {
-                "repository": {
-                    "$id": "#/properties/image/properties/repository",
+                "trueNasCSP": {
+                    "$id": "#/properties/images/properties/truenascsp",
                     "type": "string",
-                    "title": "The repository schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": ""
-                },
-                "pullPolicy": {
-                    "$id": "#/properties/image/properties/pullPolicy",
-                    "type": "string",
-                    "title": "The pullPolicy schema",
-                    "description": "An explanation about the purpose of this instance.",
-                    "default": ""
-                },
-                "tag": {
-                    "$id": "#/properties/image/properties/tag",
-                    "type": "string",
-                    "title": "The tag schema",
+                    "title": "The truenascsp schema",
                     "description": "An explanation about the purpose of this instance.",
                     "default": ""
                 }
-            },
+	    },
             "additionalProperties": true
+        },
+	"imagePullPolicy": {
+            "$id": "#/properties/imagePullPolicy",
+            "title": "TrueNAS CSP image pull policy",
+            "type": "string",
+            "default": "IfNotPresent",
+            "enum": [ "Always", "IfNotPresent", "Never" ]
         },
         "imagePullSecrets": {
             "$id": "#/properties/imagePullSecrets",
