@@ -132,6 +132,21 @@ Once the `Secret` and `StorageClass` have been created, all functionality is pro
 
 **Tip:** If `VolumeSnapshots` are needed, follow the guidance in HPE CSI Driver documentation on how to [enable CSI snapshots](https://scod.hpedev.io/csi_driver/using.html#enabling_csi_snapshots) and [how to use them](https://scod.hpedev.io/csi_driver/using.html#using_csi_snapshots).
 
+## Custom auth_networks on TrueNAS SCALE
+
+From v2.5.1 onwards it's possible to specifiy a comma separated list of networks in the `StorageClass` form where initiators are allowed to connect to the targets.
+
+Example:
+
+```text
+...
+parameters:
+  authNetworks: 192.168.1.0/24, 192.168.2.0/24
+...
+```
+
+**Note:** This only works on TrueNAS SCALE.
+
 ## CHAP support
 
 From v2.5.1 onwards iSCSI CHAP is supported. Follow the [guidance provided by HPE](https://scod.hpedev.io/csi_driver/index.html#iscsi_chap_considerations). Retrofitting CHAP into an existing cluster is not recommended. Bi-directional CHAP is not supported by the HPE CSI Driver and will not work with the TrueNAS CSP.
