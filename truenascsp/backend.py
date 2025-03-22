@@ -31,7 +31,7 @@ import urllib3
 import requests
 import re
 from requests.auth import HTTPBasicAuth
-from ipaddress import IPv4Interface
+from ipaddress import IPv4Interface, ip_network
 
 urllib3.disable_warnings()
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -725,7 +725,7 @@ class Handler:
         cidrs = re.split(r'\s*,\s*', networks)
 
         for cidr in cidrs:
-            if ipaddress.ip_network(cidr):
+            if ip_network(cidr):
                 res.append(cidr)
 
         return res
