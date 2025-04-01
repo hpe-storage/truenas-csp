@@ -4,10 +4,12 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 
 ## Prerequisites
 
-- TrueNAS 12.0 or later
-- TrueNAS SCALE 22.02 or later
+- TrueNAS Core 12.0 or later
+- TrueNAS SCALE 22.02 or later (see note below)
 - FreeNAS 11.2-U3 or later
 - Helm 3.6 or later (recommended, only needed if using Helm to install the CSP)
+
+**Note:** TrueNAS SCALE 25.04 is currently NOT supported.
 
 ### TrueNAS Container Storage Provider Helm Chart
 
@@ -25,17 +27,20 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.0/hpe-csi-k8s-1.30.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-rbac.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/csi-driver-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-node.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-controller.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.5.1/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.5.2/truenas-csp.yaml
 ```
 
-**Note:** Replace `hpe-csi-k8s-<version>.yaml` with your version of Kubernetes. Also change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work.
+**Note:** Change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work (manifests reflects the latest version).
 
 ### Configure CSI driver
 

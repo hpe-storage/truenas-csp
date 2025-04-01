@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 
-from os import environ
+from os import environ, getpid
 from time import sleep
 import traceback
 import logging
@@ -31,7 +31,7 @@ import urllib3
 import requests
 import re
 from requests.auth import HTTPBasicAuth
-from ipaddress import IPv4Interface
+from ipaddress import IPv4Interface, ip_network
 
 urllib3.disable_warnings()
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -56,8 +56,9 @@ class Handler:
         self.backend_retries = 15
         self.backend_delay = 1.5
         self.access_name = '{dataset_name}'
+        self.clone_from_pvc_prefix = 'snap-for-clone-'
 
-        self.logger = logging.getLogger('{name}'.format(name=__name__))
+        self.logger = logging.getLogger('{name} {pid}'.format(name=__name__, pid=getpid()))
         self.logger.setLevel(logging.DEBUG if environ.get(
             'LOG_DEBUG') else logging.INFO)
 
@@ -290,8 +291,9 @@ class Handler:
 
         discovery_ips = []
 
-        for listen in portal.get('listen'):
-            discovery_ips.append(listen.get('ip'))
+        if not isinstance(portal, list):
+            for listen in portal.get('listen'):
+                discovery_ips.append(listen.get('ip'))
 
         return discovery_ips
 
@@ -321,8 +323,32 @@ class Handler:
     # pool/dataset, field=name, value=foo, attr=rawvalue
     def fetch(self, resource, **kwargs):
         results = []
+        options = {}
+        query = {}
+        filters = []
+        operator = kwargs.get('operator', '=')
+        attr = kwargs.get('attr')
+        field = kwargs.get('field')
+        value = kwargs.get('value')
+        extras = kwargs.get('extras')
+        returnBy = kwargs.get('returnBy')
+
+        if extras:
+            options = { "extra": extras }
+
+        if field and value:
+            filters.append([ field, operator, value ])
+
+        if filters or options:
+            query = {
+                        "query-filters": filters,
+                        "query-options": options
+                    }
+
+        self.logger.debug('Composed query: %s', query)
+
         try:
-            self.get(resource)
+            self.get(resource, query)
 
             if self.req_backend.status_code != 200:  # FIXME
                 self.logger.debug('TrueNAS GET Request through fetch: %s', self.req_backend.status_code)
@@ -334,20 +360,17 @@ class Handler:
                 rset = [ rset ]
 
             for item in rset:
-                if kwargs.get('field') and kwargs.get('value'):
-                    self.logger.debug('Looking for field={field} and value={value}'.format(field=kwargs.get('field'),
-                            value=kwargs.get('value')))
-                    if kwargs.get('attr'):
-                        value = item.get(kwargs.get('field')).get(
-                            kwargs.get('attr'))
+                if field and value:
+                    self.logger.debug('Looking for field={field} and value={value}'.format(field=field,
+                            value=value))
+                    if attr:
+                        value = item.get(field).get(attr)
                     else:
-                        value = item.get(kwargs.get('field'))
+                        self.logger.debug('Nope %s', item)
+                        value = item.get(field)
 
-                    if not isinstance(kwargs.get('value'), str) and hasattr(kwargs.get('value'), 'match'):
-                        if not kwargs.get('value').match(value):
-                            continue
-                    else:
-                        if kwargs.get('value') != value:
+                    if not isinstance(value, str) and hasattr(value, 'match'):
+                        if not value.match(value):
                             continue
                 results.append(item)
         except Exception:
@@ -357,7 +380,7 @@ class Handler:
         if len(results) == 1:
             self.logger.debug('API fetch caught 1 item')
 
-            if kwargs.get('returnBy') == list:
+            if returnBy == list:
                 return results
             else:
                 return results[0]
@@ -365,7 +388,7 @@ class Handler:
         if len(results) > 1:
             self.logger.debug('API fetch caught %d items', len(results))
 
-            if kwargs.get('returnBy') == dict:
+            if returnBy == dict:
                 self.logger.debug('Returning first row in result set')
                 return results[0]
             else:
@@ -374,7 +397,7 @@ class Handler:
         self.logger.debug('API fetch caught %d items (last resort)', len(results))
 
         if len(results) == 0:
-            if kwargs.get('returnBy') == dict:
+            if returnBy == dict:
                 return {}
 
         return results
@@ -388,16 +411,16 @@ class Handler:
                                                rid=rid)
         return uri
 
-    def get(self, uri):
+    def get(self, uri, query={}):
         auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS GET request URI: %s', uri)
             if type(auth) == HTTPBasicAuth:
                 self.req_backend = requests.get(self.url_tmpl(uri),
-                                    auth=auth, verify=False)
+                                    auth=auth, verify=False, json=query)
             else:
                 self.req_backend = requests.get(self.url_tmpl(uri),
-                                    headers=auth, verify=False)
+                                    headers=auth, verify=False, json=query)
             self.logger.debug('TrueNAS response: %s', self.req_backend.text)
             self.resp_msg = '{code} {reason}'.format(
                 code=str(self.req_backend.status_code), reason=self.req_backend.reason)
@@ -451,38 +474,6 @@ class Handler:
         auth = self._get_auth()
         try:
             self.logger.debug('TrueNAS DELETE request URI: %s', uri)
-            body = kwargs.get('body') if kwargs.get('body') else None 
-            self.logger.debug('Embedding content in DELETE body: %s', body)
-
-            # ensure uri
-            exist = self.fetch(uri)
-
-            if not exist:
-                self.logger.info('{msg} {uri}'.format(msg=self.resp_msg, uri=uri))
-                return
-
-            if type(auth) == HTTPBasicAuth:
-                self.req_backend = requests.delete(self.url_tmpl(uri),
-                                    data=body, auth=auth, headers=headers, verify=False)
-            else:
-                auth.update(headers)
-                self.req_backend = requests.delete(self.url_tmpl(uri),
-                                    data=body, headers=auth, verify=False)
-            self.resp_msg = '{code} {reason}'.format(
-                code=str(self.req_backend.status_code), reason=self.req_backend.reason)
-            self.logger.debug('TrueNAS response code: %s', self.req_backend.status_code)
-            self.logger.debug('TrueNAS response msg: %s', self.req_backend.content.decode('utf-8'))
-            self.req_backend.raise_for_status()
-        except Exception:
-            self.csp_error('Backend Request (DELETE) Exception: {msg}'.format(msg=self.resp_msg),
-                           traceback.format_exc())
-
-
-    def delete(self, uri, **kwargs):
-        headers = { 'Content-Type': 'application/json' }
-        auth = self._get_auth()
-        try:
-            self.logger.debug('TrueNAS DELETE request URI: %s', uri)
             body = kwargs.get('body') if kwargs.get('body') else None
             self.logger.debug('Embedding content in DELETE body: %s', body)
 
@@ -508,7 +499,6 @@ class Handler:
         except Exception:
             self.csp_error('Backend Request (DELETE) Exception: {msg}'.format(msg=self.resp_msg),
                            traceback.format_exc())
-
         sleep(self.backend_delay) #FIXME
 
 
@@ -725,7 +715,28 @@ class Handler:
         cidrs = re.split(r'\s*,\s*', networks)
 
         for cidr in cidrs:
-            if ipaddress.ip_network(cidr):
+            if ip_network(cidr):
                 res.append(cidr)
 
         return res
+
+    def dataset_is_busy(self, dataset):
+        ds = self.fetch('pool/dataset', field='origin.value',
+                value='{name}@'.format(name=dataset.get('id')), operator='^')
+
+        if ds:
+            self.logger.debug('ZFS dataset has dependents: %s', dataset)
+            return True
+
+        snapshots = self.fetch('zfs/snapshot', field='name',
+                value='{name}@'.format(name=dataset.get('id')), operator='^',
+                returnBy=list)
+
+        for snapshot in snapshots:
+            if snapshot.get('holds') or int(snapshot.get('properties').get('numclones').get('value')) > 0:
+                self.logger.debug('ZFS snapshot is busy: %s', snapshot.get('id'))
+                return True
+
+        # nothing to see here
+        self.logger.debug('ZFS dataset clear for removal: %s', dataset.get('id'))
+        return False

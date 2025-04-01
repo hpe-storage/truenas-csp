@@ -1,10 +1,12 @@
+---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: e2e-standard-rwo
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+  name: hpe-standard-nfs
 provisioner: csi.hpe.com
 parameters:
-  csi.storage.k8s.io/fstype: xfs
   csi.storage.k8s.io/controller-expand-secret-name: truenas-secret
   csi.storage.k8s.io/controller-expand-secret-namespace: hpe-storage
   csi.storage.k8s.io/controller-publish-secret-name: truenas-secret
@@ -15,10 +17,9 @@ parameters:
   csi.storage.k8s.io/node-stage-secret-namespace: hpe-storage
   csi.storage.k8s.io/provisioner-secret-name: truenas-secret
   csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
-  description: "Volume created by the HPE CSI Driver for Kubernetes from {namespace}"
-  root: tank/csi-e2e
-  #chapSecretNamespace: hpe-storage
-  #chapSecretName: my-chap-secret
-  #authNetworks: 192.168.20.0/24, 192.168.10.0/24
+  csi.storage.k8s.io/fstype: xfs
+  nfsResources: "true"
+  allowOverrides: sparse,compression,deduplication,volblocksize,sync,description  
+  root: zwimming/csi-volumes
 reclaimPolicy: Delete
 allowVolumeExpansion: true

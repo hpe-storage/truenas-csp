@@ -38,12 +38,13 @@ spec:
           {{- end }}
           {{ if eq .Values.optimizeFor "FreeNAS" -}}
           command:
-            - gunicorn
+            - /app/bin/gunicorn
           args:
             - "--bind=0.0.0.0:8080"
             - "--workers=1"
             - "--threads=1"
-            - "--timeout=15"
+            - "--timeout=60"
+            - "--preload"
             - "csp:SERVE"
           {{- end }}
           ports:

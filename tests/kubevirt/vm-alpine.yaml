@@ -1,0 +1,36 @@
+---
+# https://github.com/kubevirt/kubevirt/tree/main/examples
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-alpine
+spec:
+  runStrategy: Always
+  template:
+    spec:
+      networks:
+      - name: default
+        pod: {}
+      domain:
+        devices:
+          interfaces:
+          - masquerade: {}
+            name: default
+          disks:
+          - disk:
+              bus: virtio
+            name: containerdisk
+          - disk:
+              bus: virtio
+            name: my-pvc
+        resources:
+          requests:
+            memory: 128Mi
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - name: containerdisk
+        containerDisk:
+          image: kubevirt/alpine-container-disk-demo:devel
+      - name: my-pvc
+        persistentVolumeClaim:
+          claimName: disk-alpine

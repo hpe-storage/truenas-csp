@@ -20,7 +20,8 @@ push:
                 --provenance=false --push -t $(REPO_NAME):$(IMAGE_TAG) .
 run:
 	docker rm -f truenas-csp || true
-	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 $(REPO_NAME):$(IMAGE_TAG)
+	docker run -d -p8080:8080 --name truenas-csp -e LOG_DEBUG=1 \
+		--pull=always $(REPO_NAME):$(IMAGE_TAG)
 
 test:
 
@@ -95,6 +96,11 @@ test:
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/volumes -f
 
+        # List snapshots
+	- $(curl) $(curl_args) -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/snapshots?volume_id=tank_my-new-volume16 -f
+
 	# Create thick volume
 	$(curl) $(curl_args) -XPOST -d @tests/csp/volume-thick.yaml -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
@@ -135,6 +141,11 @@ test:
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/snapshots -f
 
+	# List snapshots
+	$(curl) $(curl_args) -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/snapshots?volume_id=tank_my-new-volume16 -f
+
 	# Get snapshots from volume
 	$(curl) $(curl_args) -XGET -H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/snapshots?volume_id=tank_my-new-volume16 -f
@@ -157,6 +168,16 @@ test:
 	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
 		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
 		$(csp)/containers/v1/snapshots/tank_my-new-volume16@my-first-snapshot -f
+
+	# Delete another snapshot
+	$(curl) $(curl_args) -XDELETE -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/snapshots/tank_my-new-volume16@my-second-snapshot -f
+
+	# List snapshots
+	- $(curl) $(curl_args) -H 'Content-Type: application/json' \
+		-H 'X-Auth-Token: $(password)' -H 'X-Array-IP: $(backend)' \
+		$(csp)/containers/v1/snapshots?volume_id=tank_my-new-volume16 -f
 
 	# Unpublish volume host 1
 	$(curl) $(curl_args) -XPUT -d @tests/csp/unpublish.yaml -H 'Content-Type: application/json' \

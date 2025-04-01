@@ -26,6 +26,19 @@ import falcon
 import backend
 import truenascsp
 
+from falcon.http_error import HTTPError
+
+class CSPError(HTTPError):
+
+    def __init__(self, status, error):
+        super(CSPError, self).__init__(status)
+        self.status = status
+        self.error = {"errors":[{"code": status,"message": error }]}
+
+    def to_dict(self, obj_type=dict):
+        super(CSPError, self).to_dict(obj_type)
+        obj = self.error
+        return obj
 
 class PostLogger:
     def process_response(self, req, resp, resource, req_succeded):
@@ -58,16 +71,16 @@ class TokenHandler:
             array = req.get_header('x-array-ip')
 
         if not token:
-            reason = 'Missing token'
+            reason = falcon.HTTP_400
             description = 'Missing x-auth-token in header or password in Tokens request'
             api.logger.info('%s: %s', reason, description)
-            raise falcon.HTTPUnauthorized(reason, description)
+            raise CSPError(reason, description)
 
         if not array:
-            reason = 'Missing backend array IP'
+            reason = falcon.HTTP_400
             description = 'Missing x-array-ip in header or array_ip in Tokens request'
             api.logger.info('%s: %s', reason, description)
-            raise falcon.HTTPBadRequest(reason, description)
+            raise CSPError(reason, description)
 
         api.backend = array
         api.token = token
@@ -75,10 +88,10 @@ class TokenHandler:
         api.ping(req)
 
         if not api.pong:
-            reason = 'Authentication failed'
+            reason = falcon.HTTP_401
             description = 'Unable to authenticate with provided credentials'
             api.logger.info('%s: %s', reason, description)
-            raise falcon.HTTPUnauthorized(reason, description)
+            raise CSPError(reason, description)
 
 # Serve!
 SERVE = falcon.API(middleware=[TokenHandler(), PostLogger()])
