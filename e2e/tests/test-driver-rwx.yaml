@@ -13,7 +13,7 @@ DriverInfo:
     exec: true
     snapshotDataSource: true
     multipods: true
-    controllerExpansion: false
+    controllerExpansion: true
     nodeExpansion: false
     volumeLimits: false
     topology: false

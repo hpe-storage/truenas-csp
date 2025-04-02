@@ -33,20 +33,21 @@ import backend
 
 publish_lock = Lock()
 unpublish_lock = Lock()
+hosts_lock = Lock()
 
 class Unpublish:
     def on_put(self, req, resp, volume_id):
         unpublish_lock.acquire()
         api = req.context
         content = req.media
+        system_version = api.version()
 
         try:
             dataset_name = api.xslt_volume_id_to_name(volume_id)
             access_name = api.access_name.format(dataset_name=dataset_name)
 
             # get target from volume name
-            target = api.fetch('iscsi/target', field='name',
-                               value=access_name)
+            target = api.fetch('iscsi/target', field='name', value=access_name)
 
             api.logger.debug('Target being updated: %s', target)
 
@@ -55,12 +56,12 @@ class Unpublish:
 
             if target:
                 # get initiators from host
-                host = api.fetch(
-                    'iscsi/initiator', field='comment', value=content.get('host_uuid'))
+                host = api.fetch('iscsi/initiator', field='comment',
+                        value=content.get('host_uuid'), returnBy=dict)
 
-                # get initiator from access_name
-                initiator = api.fetch(
-                    'iscsi/initiator', field='comment', value=access_name)
+                # get initiators from access_name
+                initiator = api.fetch('iscsi/initiator', field='comment',
+                        value=access_name, returnBy=dict)
 
                 if host and initiator:
                     api.logger.debug('Initiator host requested to be unpublished: %s', host.get('id'))
@@ -88,6 +89,16 @@ class Unpublish:
                     else:
                         api.delete('iscsi/initiator/id/{tid}'.format(tid=initiator.get('id')))
                         api.logger.info('Deleted target initiator: %s', access_name)
+
+                        # FreeNAS
+                        if system_version == 'LEGACY':
+                            api.delete('iscsi/target/id/{tid}'.format(tid=target.get('id')))
+                            api.logger.info('Deleted residual target on FreeNAS: %s', target.get('name'))
+                            residual_extent = api.fetch('iscsi/extent', field='name',
+                                    value=access_name)
+                            if residual_extent:
+                                api.delete('iscsi/extent/id/{eid}'.format(eid=residual_extent.get('id')))
+                                api.logger.info('Deleted residual extent on FreeNAS: %s', residual_extent.get('name'))
 
             resp.status = falcon.HTTP_204
             api.logger.info('Volume unpublished: %s', volume_id)
@@ -238,8 +249,7 @@ class Volume:
             access_name = api.access_name.format(dataset_name=dataset_name)
 
             # delete dataset
-            dataset = api.fetch('pool/dataset', field='name',
-                                value=api.xslt_id_to_dataset(volume_id))
+            dataset = api.fetch('pool/dataset', field='name', value=api.xslt_id_to_dataset(volume_id))
 
             if dataset:
                 csi_volume = api.dataset_to_volume(dataset)
@@ -247,26 +257,29 @@ class Volume:
                 if csi_volume.get('published'):
                     resp.body = api.csp_error(
                         'Bad Request', 'Cannot delete a published volume')
-                    resp.status = falcon.HTTP_409
+                    resp.status = falcon.HTTP_400
                 else:
-
-                    # FIXME: Deal with snapshots
-                    api.delete(api.uri_id('pool/dataset',
-                                          dataset.get('name')), body='{"recursive": true, "force": true}')
-
-                    # things might be pending
-                    dataset_deletion = api.backend_retries
-
-                    while api.fetch('pool/dataset', field='name',
-                            value=api.xslt_id_to_dataset(volume_id)) and dataset_deletion:
-                        dataset_deletion -= 1
-                        sleep(api.backend_delay)
+                    if api.dataset_is_busy(dataset):
+                        resp.body = api.csp_error(
+                            'Conflict', '{volume_id} has snapshots with holds or dependent clones'.format(volume_id=volume_id))
+                        resp.status = falcon.HTTP_409
+                    else:
                         api.delete(api.uri_id('pool/dataset',
-                          dataset.get('name')), body='{"recursive": true, "force": true}')
-                        api.logger.info('Dataset deletion retried: %s', volume_id)
+                                              dataset.get('name')), body='{"recursive": true, "force": true}')
 
-                    resp.status = api.resp_msg
-                    api.logger.info('Volume deleted with id: %s', volume_id)
+                        # things might be pending
+                        dataset_deletion = api.backend_retries
+
+                        while api.fetch('pool/dataset', field='name',
+                                value=api.xslt_id_to_dataset(volume_id)) and dataset_deletion:
+                            dataset_deletion -= 1
+                            sleep(api.backend_delay)
+                            api.delete(api.uri_id('pool/dataset',
+                              dataset.get('name')), body='{"recursive": true, "force": true}')
+                            api.logger.info('Dataset deletion retried: %s', volume_id)
+
+                        resp.status = falcon.HTTP_204
+                        api.logger.info('Volume deleted with id: %s', volume_id)
             else:
                 resp.status = falcon.HTTP_404
 
@@ -281,9 +294,8 @@ class Volumes:
         api = req.context
         try:
             if req.params.get('name'):
-                regex = re.compile(
-                    '.*/{volume_name}$'.format(volume_name=req.params.get('name')))
-                dataset = api.fetch('pool/dataset', field='name', value=regex)
+                dataset = api.fetch('pool/dataset', field='name',
+                        value='/{name}'.format(name=req.params.get('name')), operator='$')
 
                 if dataset:
                     csi_resp = [api.dataset_to_volume(dataset)]
@@ -365,6 +377,7 @@ class Volumes:
 
 class Hosts:
     def on_post(self, req, resp):
+        hosts_lock.acquire()
         api = req.context
 
         content = req.media
@@ -391,6 +404,8 @@ class Hosts:
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
             resp.status = falcon.HTTP_500
+        finally:
+            hosts_lock.release()
 
     def on_delete(self, req, resp, host_id):
         api = req.context
@@ -417,12 +432,6 @@ class Tokens:
         api = req.context
 
         try:
-            if '0.0.0.0' in api.discovery_ips():
-                resp.body = api.csp_error('Unconfigured',
-                                          'Using 0.0.0.0 as listenining inferface on the portal is not supported.')
-                resp.status = falcon.HTTP_404
-                return
-
             iscsi_config = api.fetch('iscsi/global')
 
             if not api.valid_iscsi_basename(iscsi_config.get('basename')):
@@ -430,29 +439,45 @@ class Tokens:
                                           '{base} is not a valid basename, use {basenames}'.format(
                                           base=iscsi_config.get('basename'),
                                           basenames=' or '.join(api.target_basenames)))
-                resp.status = falcon.HTTP_404
+                resp.status = falcon.HTTP_400
                 return
 
             portal = api.fetch('iscsi/portal', field='comment',
                                value=api.target_portal)
 
-            if portal:
-                csi_resp = {
-                    'id': str(time()),
-                    'session_token': api.token,
-                    'array_ip': api.backend,
-                    'username': req.params.get('username'),
-                    'creation_time': int(time()),
-                    'expiry_time': int(time()) + 86400
-                }
-                resp.body = json.dumps(csi_resp)
-
-                api.logger.debug('CSP response: %s', resp.body)
-                api.logger.info('Token created (not logged)')
-            else:
+            if isinstance(portal, list):
                 resp.body = api.csp_error('Unconfigured',
-                                          'No iSCSI portal named {name} with comment {comment} found'.format(name=' or '.join(api.target_basenames), comment=api.target_portal))
-                resp.status = falcon.HTTP_404
+                                          'No single iSCSI portal named "{comment}" found (duplicates are not allowed)'.format(comment=api.target_portal))
+                resp.status = falcon.HTTP_400
+                return
+
+            ips = api.discovery_ips()
+
+            if not ips:
+                resp.body = api.csp_error('Unconfigured',
+                                          'No IP addresses found on the portal')
+                resp.status = falcon.HTTP_400
+                return
+
+            if '0.0.0.0' in ips or '::' in ips:
+                resp.body = api.csp_error('Unconfigured',
+                        'Using "0.0.0.0" or "::" as listenining inferface on the portal is not supported')
+                resp.status = falcon.HTTP_400
+                return
+
+            csi_resp = {
+                'id': str(time()),
+                'session_token': api.token,
+                'array_ip': api.backend,
+                'username': req.params.get('username'),
+                'creation_time': int(time()),
+                'expiry_time': int(time()) + 86400
+            }
+
+            resp.body = json.dumps(csi_resp)
+
+            api.logger.debug('CSP response: %s', resp.body)
+            api.logger.info('Token created (not logged)')
 
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
@@ -467,6 +492,7 @@ class Snapshots:
         api = req.context
 
         content = req.media
+        system_version = api.version()
 
         try:
             snapshot_name = content.get('name')
@@ -503,6 +529,12 @@ class Snapshots:
             api.logger.debug('CSP response: %s', resp.body)
             api.logger.info('Snapshot created: %s', csi_resp.get('name'))
 
+            # create a hold if VolumeSnapshot res
+            if api.clone_from_pvc_prefix not in snapshot.get('id') and system_version == 'SCALE':
+                req_backend = { 'id': snapshot.get('id') }
+                api.post('zfs/snapshot/hold', req_backend)
+                api.logger.info('Dataset held: %s', snapshot.get('id'))
+
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
             resp.status = falcon.HTTP_500
@@ -514,16 +546,18 @@ class Snapshots:
 
             if req.params.get('name'):
                 snapshot = api.fetch('zfs/snapshot', field='snapshot_name',
-                                     value=api.xslt_id_to_dataset(req.params.get('name')))
+                        extras={"holds": True}, value=api.xslt_id_to_dataset(req.params.get('name')))
 
-                if snapshot:
+                if snapshot and snapshot.get('holds'):
                     csi_resp = [api.snapshot_to_snapshot(snapshot)]
             else:
+                # assuming too much here FIXME
                 snapshots = api.fetch('zfs/snapshot', field='dataset',
-                                      value=api.xslt_id_to_dataset(req.params.get('volume_id')))
+                        extras={"holds": True }, returnBy=list, value=api.xslt_id_to_dataset(req.params.get('volume_id')))
 
                 for snapshot in snapshots:
-                    csi_resp.append(api.snapshot_to_snapshot(snapshot))
+                    if snapshot.get('holds'):
+                        csi_resp.append(api.snapshot_to_snapshot(snapshot))
 
             if csi_resp:
                 resp.body = json.dumps(csi_resp)
@@ -532,9 +566,12 @@ class Snapshots:
                                 req.params.get('volume_id'))
 
             else:
-                resp.body = api.csp_error('Not found', 'No snapshots found on volume {volume_id}.'.format(
-                    volume_id=req.params.get('volume_id')))
-                resp.status = falcon.HTTP_404
+                if req.params.get('name'):
+                    resp.status = falcon.HTTP_404
+                else:
+                    resp.status = falcon.HTTP_200
+                resp.body = json.dumps(csi_resp)
+                api.logger.debug('No snapshots found on volume %s', req.params.get('volume_id'))
 
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())
@@ -567,6 +604,7 @@ class Snapshot:
 
     def on_delete(self, req, resp, snapshot_id):
         api = req.context
+        system_version = api.version()
 
         try:
             snapshot = api.fetch('zfs/snapshot', field='id',
@@ -586,8 +624,21 @@ class Snapshot:
 
                     if snapshot_clones == 0:
                         api.logger.info('Snapshot had clones, not deleted: %s', snapshot_id)
+
+                        # release the snapshot hold
+                        req_backend = { 'id': snapshot.get('id') }
+                        if system_version == 'SCALE':
+                            api.post('zfs/snapshot/release', req_backend)
+                            api.logger.info('Dataset released: %s', snapshot.get('id'))
+
                         resp.status = falcon.HTTP_204
                         return
+
+                # FIXME dupe code
+                req_backend = { 'id': snapshot.get('id') }
+                if system_version == 'SCALE':
+                    api.post('zfs/snapshot/release', req_backend)
+                    api.logger.info('Dataset released: %s', snapshot.get('id'))
 
                 api.delete(api.uri_id('zfs/snapshot', snapshot.get('id')))
 
@@ -601,7 +652,7 @@ class Snapshot:
                     api.delete(api.uri_id('zfs/snapshot', snapshot.get('id')))
                     api.logger.info('Snapshot deletion retried: %s', snapshot_id)
 
-                resp.status = api.resp_msg
+                resp.status = falcon.HTTP_204
                 api.logger.info('Snapshot deleted: %s', snapshot_id)
             else:
                 api.logger.info('Snapshot not found: %s', snapshot_id)
