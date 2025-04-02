@@ -30,6 +30,7 @@ kubectl create ns hpe-storage
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-rbac.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-linux-config.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/csi-driver-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/crds/hpe-nodeinfo-crd.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-node.yaml
 kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-controller.yaml
 ```
