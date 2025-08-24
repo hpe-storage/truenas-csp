@@ -12,8 +12,8 @@ annotations:
     - name: Install
       url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
   artifacthub.io/prerelease: "false"
-version: "1.2.1"
-appVersion: "2.5.2"
+version: "1.2.2"
+appVersion: "2.5.3"
 maintainers:
   - name: Michael Mattsson
     email: michael.mattsson@gmail.com

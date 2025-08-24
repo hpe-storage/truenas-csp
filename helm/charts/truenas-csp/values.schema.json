@@ -29,6 +29,13 @@
         "logDebug": {
             "$id": "#/properties/logDebug",
             "type": "boolean",
+            "title": "Override truenas version to SCALE",
+            "description": "Override truenas version to SCALE.",
+            "default": false
+        },
+        "forceTruenasScale": {
+            "$id": "#/properties/forceTruenasScale",
+            "type": "boolean",
             "title": "The logDebug schema",
             "description": "An explanation about the purpose of this instance.",
             "default": false

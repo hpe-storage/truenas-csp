@@ -59,8 +59,9 @@ class Handler:
         self.clone_from_pvc_prefix = 'snap-for-clone-'
 
         self.logger = logging.getLogger('{name} {pid}'.format(name=__name__, pid=getpid()))
-        self.logger.setLevel(logging.DEBUG if environ.get(
-            'LOG_DEBUG') else logging.INFO)
+        self.logger.setLevel(logging.DEBUG if environ.get('LOG_DEBUG') else logging.INFO)
+
+        self.forceTruenasScale = True if environ.get('FORCE_TRUENAS_SCALE') else False
 
         self.dataset_defaults = {
             'deduplication': environ.get('DEFAULT_DEDUPLICATION', 'OFF'),
@@ -137,6 +138,10 @@ class Handler:
     def version(self):
         version = self.fetch('system/version')
         self.logger.debug('Version: %s', version)
+        
+        if self.forceTruenasScale:
+            self.logger.warning('Force SCALE version')
+            return "SCALE"
 
         if "TrueNAS-SCALE" in version:
             return "SCALE"

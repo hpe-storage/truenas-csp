@@ -31,11 +31,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ .Values.images.trueNasCSP }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          {{ if .Values.logDebug -}}
           env:
+            {{ if .Values.logDebug -}}
             - name: LOG_DEBUG
               value: "1"
-          {{- end }}
+            {{- end }}
+            {{ if .Values.forceTruenasScale -}}
+            - name: FORCE_TRUENAS_SCALE
+              value: "1"
+            {{- end }}
           {{ if eq .Values.optimizeFor "FreeNAS" -}}
           command:
             - /app/bin/gunicorn
