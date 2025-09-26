@@ -12,9 +12,9 @@ CSP API endpoints:
 - volume_groups (not implemented)
 - snapshot_groups (not implemented)
 
-The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI and Fibre Channel protocols.
+The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI, Fibre Channel and NFS protocols.
 
-As of version 2.5.2 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 3.0.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -29,6 +29,7 @@ As of version 2.5.2 of the HPE CSI Driver, these parts of the CSI spec are curre
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver Helm chart version.
 
+* [TrueNAS CSP v3.0.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v3.0.0) for HPE CSI Driver v3.0.0
 * [TrueNAS CSP v2.5.2](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.5.2) for HPE CSI Driver v2.5.2
 * [TrueNAS CSP v2.5.1](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.5.1) for HPE CSI Driver v2.5.1
 * [TrueNAS CSP v2.4.2](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.4.2) for HPE CSI Driver v2.4.2
@@ -88,6 +89,8 @@ These are the known issues and limitations.
 - **FreeNAS ctl_max_luns:** FreeNAS has an internal limit of 1024 LUNs. That number increments for every new LUN created, even if deleted. The iSCSI Target service won't start and it leads to all sorts of problems. This is the log message on the console: `requested LUN ID 1031 is higher than ctl_max_luns` (this system had two iSCSI Targets).
 - **FreeNAS iSCSI Target:** On systems with a high degree of churn, especially during e2e testing, the iSCSI Target sometimes croak and needs to be restarted. It's recommended to starve the CSP to ease the API requests against FreeNAS and let failures be handled by CSI driver and Kubernetes (see [Helm chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp)).
 - **CSI spec lag:** `VolumeAttributeClasses` (can be mitigated with the HPE CSI Driver Volume Mutator) and `VolumeGroups` are not implemented yet.
+- **Multiple IP addresses on iSCSI Targets:** Due to an issue in the upstream HPE CSI Driver common-host-libs, iSCSI Targets on TrueNAS with multiple IP addresses won't be cleaned up on the hosts after volumes have been disconnected. Symptoms are lingering iSCSI sessions. Use other means to provide L2 redundancy, such as LACP.
+- **Root dataset length restrictions:** The "volume ID" is derived from the from the full path to the dataset, including the PVC name. Ensure the full path to the root dataset does not exceed 22 characters, including the `/` dividers. Example max path: "myzpool/kubernetes/csi".
 
 # Need help?
 

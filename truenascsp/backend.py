@@ -51,7 +51,7 @@ class Handler:
         self.uri_slash = '%2f'
         self.resp_msg = '100 Continue'
         self.target_basenames = [ 'iqn.2011-08.org.truenas.ctl', 'iqn.2005-10.org.freenas.ctl' ]
-        self.target_portal = 'hpe-csi'
+        self.target_portal = environ.get('DEFAULT_TARGET_PORTAL', 'hpe-csi')
         self.chap_tag = environ.get('DEFAULT_CHAP_TAG', '4730274')
         self.backend_retries = 15
         self.backend_delay = 1.5
@@ -138,14 +138,12 @@ class Handler:
         version = self.fetch('system/version')
         self.logger.debug('Version: %s', version)
 
-        if "TrueNAS-SCALE" in version:
-            return "SCALE"
-        if "TrueNAS" in version:
+        if "TrueNAS-1" in version:
             return "CORE"
         if "FreeNAS" in version:
             return "LEGACY"
 
-        return None
+        return "SCALE"
 
     def url_tmpl(self, uri):
         return '{schema}://{backend}{api}{uri}'.format(schema=self.backend_schema,
@@ -274,7 +272,7 @@ class Handler:
                     'deduplication': dataset.get('deduplication').get('value'),
                     'sync': dataset.get('sync').get('value'),
                     'volblocksize': dataset.get('volblocksize').get('value'),
-                    'target_scope': 'volume'  # FIXME
+                    'target_scope': 'volume'
                 }
             }
             return volume

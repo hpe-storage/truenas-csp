@@ -399,7 +399,7 @@ class Hosts:
             resp.body = json.dumps(csi_resp)
 
             api.logger.debug('CSP response: %s', resp.body)
-            api.logger.info('Host initiator created: %s', payload.get('comment'))
+            api.logger.info('Host initiator asserted: %s', payload.get('comment'))
 
         except Exception:
             resp.body = api.csp_error('Exception', traceback.format_exc())

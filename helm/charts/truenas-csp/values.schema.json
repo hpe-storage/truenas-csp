@@ -8,6 +8,7 @@
     "required": [
         "logDebug",
 	"optimizeFor",
+	"targetPortal",
         "images",
 	"imagePullPolicy",
         "imagePullSecrets",
@@ -40,6 +41,13 @@
             "description": "An explanation about the purpose of this instance.",
 	    "enum": [ "FreeNAS", "Default" ],
             "default": "Default"
+        },
+        "targetPortal": {
+            "$id": "#/properties/targetPortal",
+            "type": "string",
+            "title": "The targetPortal schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "hpe-csi"
         },
         "images": {
             "$id": "#/properties/images",
@@ -381,7 +389,9 @@
             "description": "An explanation about the purpose of this instance.",
             "default": {},
             "required": [
-                "disable"
+                "disable",
+		"logLevel",
+		"disableNodeMonitor"
             ],
             "properties": {
                 "disable": {
@@ -395,7 +405,8 @@
                         "primera",
                         "alletra6000",
                         "alletra9000",
-                        "alletraStorageMP"
+                        "alletraStorageMP",
+			"b10000FileService"
                     ],
                     "properties": {
                         "nimble": {
@@ -432,7 +443,29 @@
                             "title": "The alletraStorageMP schema",
                             "description": "An explanation about the purpose of this instance.",
                             "default": false
-                        }
+                        },
+                        "b10000FileService": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/b10000FileService",
+                            "type": "boolean",
+                            "title": "The b10000FileService schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+			"logLevel": {
+			    "$id": "#/properties/hpe-csi-driver/logLevel",
+			    "type": "string",
+			    "title": "The logLevel schema",
+			    "description": "An explanation about the purpose of this instance.",
+			    "enum": [ "info", "debug", "trace", "warn", "error" ],
+			    "default": "info"
+			},
+			"disableNodeMonitor": {
+			    "$id": "#/properties/hpe-csi-driver/disableNodeMonitor",
+			    "type": "boolean",
+			    "title": "The disableNodeMonitor schema",
+			    "description": "An explanation about the purpose of this instance.",
+			    "default": "false"
+			}
                     },
                     "additionalProperties": false
                 }

@@ -9,11 +9,14 @@ logDebug: false
 # Tunes the CSP backend API requests
 optimizeFor: "Default"
 
+# Name of Target Portal
+targetPortal: "hpe-csi"
+
 # Pull policy
 imagePullPolicy: IfNotPresent
 
 images:
-  trueNasCSP: quay.io/datamattsson/truenas-csp:v2.5.2
+  trueNasCSP: quay.io/datamattsson/truenas-csp:v3.0.0
 
 imagePullSecrets: []
 nameOverride: ""
@@ -91,3 +94,6 @@ hpe-csi-driver:
     alletra6000: true
     alletra9000: true
     alletraStorageMP: true
+    b10000FileService: true
+  logLevel: info
+  disableNodeMonitor: false

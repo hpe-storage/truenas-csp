@@ -31,8 +31,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ .Values.images.trueNasCSP }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          {{ if .Values.logDebug -}}
           env:
+            - name: DEFAULT_TARGET_PORTAL
+              value: "{{ .Values.targetPortal }}"
+          {{ if .Values.logDebug -}}
             - name: LOG_DEBUG
               value: "1"
           {{- end }}
