@@ -5,11 +5,12 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 ## Prerequisites
 
 - TrueNAS Core 12.0 or later
-- TrueNAS SCALE 22.02 or later (see note below)
+- TrueNAS SCALE 22.02 or later
 - FreeNAS 11.2-U3 or later
 - Helm 3.6 or later (recommended, only needed if using Helm to install the CSP)
-
-**Note:** TrueNAS SCALE 25.04 is currently NOT supported.
+- Kubernetes 1.26 or later
+- OpenShift 4.14 or later
+- A preconfigured **FILESYSTEM** dataset on TrueNAS/FreeNAS to use as root dataset
 
 ### TrueNAS Container Storage Provider Helm Chart
 
@@ -27,18 +28,18 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-rbac.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/csi-driver-crd.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/crds/hpe-nodeinfo-crd.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-node.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v2.5.2/hpe-csi-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-rbac.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/csi-driver-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/crds/hpe-nodeinfo-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-node.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-controller.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v2.5.2/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v3.0.0/truenas-csp.yaml
 ```
 
 **Note:** Change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work (manifests reflects the latest version).
@@ -70,8 +71,8 @@ The TrueNAS/FreeNAS appliance require an iSCSI portal to be configured manually 
 
 ![](https://hpe-storage.github.io/truenas-csp/assets/portal.png)
 
-- Description: `hpe-csi`
-- IP Address: List of IPs used for iSCSI (do **NOT** use 0.0.0.0)
+- Description: `hpe-csi` (may be changed with the `targetPortal` Helm chart parameter)
+- IP Address: List of IPs used for iSCSI (do **NOT** use 0.0.0.0 and only use one IP address. See [Limitations](https://github.com/hpe-storage/truenas-csp?tab=readme-ov-file#limitations))
 
 The Target Global Configuration needs to have an explicit Base Name:
 
@@ -125,7 +126,7 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-namespace: hpe-storage
   csi.storage.k8s.io/fstype: xfs
   allowOverrides: sparse,compression,deduplication,volblocksize,sync,description
-  root: zwimming/csi-volumes
+  root: zwimming/csi-volumes # Do not exceed 22 characters, including "/".
 reclaimPolicy: Delete
 allowVolumeExpansion: true
 ```
@@ -160,3 +161,18 @@ From v2.5.1 onwards iSCSI CHAP is supported. Follow the [guidance provided by HP
 CHAP on TrueNAS uses a hardcoded tag (4730274) for the authorization on the appliance. As long as that authorization exist on the appliance, CHAP details will be returned to the CSI driver and attempted to connect to the target. Do not create this tag manually, it will be created by TrueNAS CSP when enabled in the HPE CSI Driver.
 
 **Important:** If you need to rotate the CHAP authorization it's recommended to scale down all workloads, change the `Secret`, and scale the workloads up again. Otherwise existing iSCSI sessions may break.
+
+## Red Hat OpenShift
+
+In order for the HPE CSI Driver for Kubernetes to function properly on OpenShift, a custom `SecurityContextConstraint` (SCC) needs to be installed on the cluster.
+
+```text
+oc new-project hpe-storage --display-name="TrueNAS CSP"
+oc apply -f https://scod.hpedev.io/csi_driver/partners/redhat_openshift/examples/scc/hpe-csi-scc.yaml
+```
+
+Go ahead and install [the Helm chart](https://artifacthub.io/packages/helm/truenas-csp/truenas-csp) as normal into the "hpe-storage" namespace.
+
+## Accessing TrueNAS from multiple clusters and subnets
+
+If multiple Kubernetes clusters need to access the TrueNAS appliance over different subnets, there needs to be multiple iSCSI Portals on the appliance and the Helm chart needs to be installed with the custom `targetPortal` parameter on each of the clusters.

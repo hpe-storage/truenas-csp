@@ -11,7 +11,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: csi-e2e
-          image: quay.io/datamattsson/csi-e2e:v2.5.2
+          image: quay.io/datamattsson/csi-e2e:v3.0.1
           command:
           - runner.sh
           args:

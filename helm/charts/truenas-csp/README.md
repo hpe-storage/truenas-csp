@@ -8,8 +8,6 @@ This Chart provide means to install the dependent [HPE CSI Driver for Kubernetes
 - TrueNAS SCALE 22.02 or later (see note below)
 - FreeNAS 11.2-U3 or later
 
-**Note:** TrueNAS SCALE 25.04 is currently NOT supported.
-
 This chart is lock stepped with [HPE CSI Driver for Kubernetes Helm chart](https://artifacthub.io/packages/helm/hpe-storage/hpe-csi-driver) application versions. Other requirements and prerequisites such as supported host OS and Kubernetes versions may be found on that chart.
 
 **IMPORTANT:** Do **NOT** install this chart if the HPE CSI Driver for Kubernetes is already installed!
@@ -22,6 +20,7 @@ The following table lists the configurable parameters of the chart and their def
 |---------------------------|------------------------------------------------------------------------------------|------------------|
 | logDebug                  | Log extensive debug information on stdout of the CSP                               | false            |
 | optimizeFor               | Set to "FreeNAS" to apply minimal amount of threads and short timeouts for the CSP | "Default"        |
+| targetPortal              | Use an alternative name for the iSCSI portal description to use on TrueNAS    | "hpe-csi"        |
 | images.trueNasCSP         | Use this particular fully qualified image name for the TrueNAS CSP                 | From values.yaml |
 
 **Hint:** The usual Helm decorations are available for the CSP, see [values.yaml](https://github.com/hpe-storage/truenas-csp/blob/master/helm/charts/truenas-csp/values.yaml).
