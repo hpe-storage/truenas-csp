@@ -323,11 +323,12 @@ class Volumes:
             root = content.get('config').get('root', api.dataset_defaults.get('root'))
 
             if content.get('clone'):
+                snapshot_resource = api.snapshot_resource()
                 req_backend = {
                     'snapshot': api.xslt_id_to_dataset(content.get('base_snapshot_id')),
                     'dataset_dst': '{root}/{volume_name}'.format(volume_name=content.get('name'), root=root),
                 }
-                api.post('zfs/snapshot/clone', req_backend)
+                api.post('{resource}/clone'.format(resource=snapshot_resource), req_backend)
 
                 dataset = api.fetch('pool/dataset', field='name',
                                     value='{root}/{volume_name}'.format(volume_name=content.get('name'), root=root))
@@ -341,7 +342,7 @@ class Volumes:
                         pv=content.get('config').get('csi.storage.k8s.io/pv/name', 'pv')
                         ),
                     'name': '{root}/{volume_name}'.format(volume_name=content.get('name'), root=root),
-                    'volsize': '{size}'.format(size=int(content.get('size'))),
+                    'volsize': int(content.get('size')),
                     'volblocksize': content.get('config').get('volblocksize', api.dataset_defaults.get('volblocksize')),
                     'sparse': json.loads(content.get('config').get('sparse', api.dataset_defaults.get('sparse')).lower()),
                     'deduplication': content.get('config').get('deduplication', api.dataset_defaults.get('deduplication')),
@@ -493,13 +494,14 @@ class Snapshots:
 
         content = req.media
         system_version = api.version()
+        snapshot_resource = api.snapshot_resource(system_version)
 
         try:
             snapshot_name = content.get('name')
             dataset_name = api.xslt_id_to_dataset(content.get('volume_id'))
 
             # TrueNAS API is broken
-            snapshot = api.fetch('zfs/snapshot', field='name',
+            snapshot = api.fetch(snapshot_resource, field='name',
                                  value='{dataset_name}@{snapshot_name}'.format(dataset_name=dataset_name,
                                                                                snapshot_name=snapshot_name))
 
@@ -510,7 +512,7 @@ class Snapshots:
                     'name': snapshot_name,
                     'dataset': dataset_name,
                 }
-                api.post('zfs/snapshot', req_backend)
+                api.post(snapshot_resource, req_backend)
 
                 if api.req_backend.status_code != 200:
                     resp.body = api.csp_error('Bad Request',
@@ -519,7 +521,7 @@ class Snapshots:
                     return
 
                 # TrueNAS API is broken
-                snapshot = api.fetch('zfs/snapshot', field='name',
+                snapshot = api.fetch(snapshot_resource, field='name',
                                      value='{dataset_name}@{snapshot_name}'.format(dataset_name=dataset_name,
                                                                                    snapshot_name=snapshot_name))
 
@@ -532,7 +534,7 @@ class Snapshots:
             # create a hold if VolumeSnapshot res
             if api.clone_from_pvc_prefix not in snapshot.get('id') and system_version == 'SCALE':
                 req_backend = { 'id': snapshot.get('id') }
-                api.post('zfs/snapshot/hold', req_backend)
+                api.post('{resource}/hold'.format(resource=snapshot_resource), req_backend)
                 api.logger.info('Dataset held: %s', snapshot.get('id'))
 
         except Exception:
@@ -543,17 +545,18 @@ class Snapshots:
         api = req.context
         try:
             csi_resp = []
+            snapshot_resource = api.snapshot_resource()
 
             if req.params.get('name'):
-                snapshot = api.fetch('zfs/snapshot', field='snapshot_name',
+                snapshot = api.fetch(snapshot_resource, field='snapshot_name',
                         extras={"holds": True}, value=api.xslt_id_to_dataset(req.params.get('name')))
 
                 if snapshot and snapshot.get('holds'):
                     csi_resp = [api.snapshot_to_snapshot(snapshot)]
             else:
                 # assuming too much here FIXME
-                snapshots = api.fetch('zfs/snapshot', field='dataset',
-                        extras={"holds": True }, returnBy=list, value=api.xslt_id_to_dataset(req.params.get('volume_id')))
+                snapshots = api.fetch(snapshot_resource, field='dataset',
+                        extras={"holds": True }, returnBy=list, value=api.xslt_id_to_dataset(req.params.get('volume_id'))) or []
 
                 for snapshot in snapshots:
                     if snapshot.get('holds'):
@@ -583,7 +586,7 @@ class Snapshot:
     def on_get(self, req, resp, snapshot_id):
         api = req.context
         try:
-            snapshot = api.fetch('zfs/snapshot', field='id',
+            snapshot = api.fetch(api.snapshot_resource(), field='id',
                                  value=api.xslt_id_to_dataset(snapshot_id))
 
             if snapshot:
@@ -605,9 +608,10 @@ class Snapshot:
     def on_delete(self, req, resp, snapshot_id):
         api = req.context
         system_version = api.version()
+        snapshot_resource = api.snapshot_resource(system_version)
 
         try:
-            snapshot = api.fetch('zfs/snapshot', field='id',
+            snapshot = api.fetch(snapshot_resource, field='id',
                                  value=api.xslt_id_to_dataset(snapshot_id),
                                  returnBy=dict)
 
@@ -618,7 +622,7 @@ class Snapshot:
                 while int(snapshot.get('properties').get('numclones').get('value')) > 0 and snapshot_clones:
                     api.logger.info('Snapshot has clones, waiting: %s', snapshot_id)
                     sleep(api.backend_delay)
-                    snapshot = api.fetch('zfs/snapshot', field='id',
+                    snapshot = api.fetch(snapshot_resource, field='id',
                                      value=api.xslt_id_to_dataset(snapshot_id))
                     snapshot_clones -= 1
 
@@ -628,7 +632,7 @@ class Snapshot:
                         # release the snapshot hold
                         req_backend = { 'id': snapshot.get('id') }
                         if system_version == 'SCALE':
-                            api.post('zfs/snapshot/release', req_backend)
+                            api.post('{resource}/release'.format(resource=snapshot_resource), req_backend)
                             api.logger.info('Dataset released: %s', snapshot.get('id'))
 
                         resp.status = falcon.HTTP_204
@@ -637,19 +641,19 @@ class Snapshot:
                 # FIXME dupe code
                 req_backend = { 'id': snapshot.get('id') }
                 if system_version == 'SCALE':
-                    api.post('zfs/snapshot/release', req_backend)
+                    api.post('{resource}/release'.format(resource=snapshot_resource), req_backend)
                     api.logger.info('Dataset released: %s', snapshot.get('id'))
 
-                api.delete(api.uri_id('zfs/snapshot', snapshot.get('id')))
+                api.delete(api.uri_id(snapshot_resource, snapshot.get('id')))
 
                 # things might be pending
                 snapshot_deletion = api.backend_retries
 
-                while api.fetch('zfs/snapshot', field='id',
+                while api.fetch(snapshot_resource, field='id',
                         value=api.xslt_id_to_dataset(snapshot_id)) and snapshot_deletion:
                     snapshot_deletion -= 1
                     sleep(api.backend_delay)
-                    api.delete(api.uri_id('zfs/snapshot', snapshot.get('id')))
+                    api.delete(api.uri_id(snapshot_resource, snapshot.get('id')))
                     api.logger.info('Snapshot deletion retried: %s', snapshot_id)
 
                 resp.status = falcon.HTTP_204
