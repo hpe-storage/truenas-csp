@@ -35,6 +35,11 @@ class SnapshotResourceTests(unittest.TestCase):
         handler = backend.Handler()
         self.assertEqual(handler.snapshot_resource("CORE"), "zfs/snapshot")
 
+    def test_normalize_volsize_returns_integer(self):
+        handler = backend.Handler()
+        self.assertEqual(handler.normalize_volsize("1073741824", "CORE"), 1073741824)
+        self.assertIsInstance(handler.normalize_volsize("1073741824", "SCALE"), int)
+
 
 class FakeSnapshotAPI:
     def __init__(self):

@@ -180,7 +180,7 @@ class Volume:
                 req_backend = {}
 
                 if content.get('size'):
-                    req_backend.update({'volsize': int(content.get('size'))})
+                    req_backend.update({'volsize': api.normalize_volsize(content.get('size'))})
                 if content.get('description'):
                     req_backend.update({'comments': content.get('description')})
 
@@ -342,7 +342,7 @@ class Volumes:
                         pv=content.get('config').get('csi.storage.k8s.io/pv/name', 'pv')
                         ),
                     'name': '{root}/{volume_name}'.format(volume_name=content.get('name'), root=root),
-                    'volsize': int(content.get('size')),
+                    'volsize': api.normalize_volsize(content.get('size')),
                     'volblocksize': content.get('config').get('volblocksize', api.dataset_defaults.get('volblocksize')),
                     'sparse': json.loads(content.get('config').get('sparse', api.dataset_defaults.get('sparse')).lower()),
                     'deduplication': content.get('config').get('deduplication', api.dataset_defaults.get('deduplication')),

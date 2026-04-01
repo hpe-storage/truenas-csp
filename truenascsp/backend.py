@@ -327,6 +327,14 @@ class Handler:
 
         return 'zfs/snapshot'
 
+    def normalize_volsize(self, size, system_version=None):
+        if system_version is None:
+            system_version = self.version()
+
+        # Keep volume-size coercion in one place so legacy variants can be
+        # handled here later without spreading version checks through the API.
+        return int(size)
+
     # pool/dataset, field=name, value=foo, attr=rawvalue
     def fetch(self, resource, **kwargs):
         results = []
