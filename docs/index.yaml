@@ -10,6 +10,72 @@ entries:
           url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
       artifacthub.io/prerelease: "false"
     apiVersion: v2
+    appVersion: 3.2.0
+    created: "2026-06-25T02:47:11.761333508Z"
+    dependencies:
+    - name: hpe-csi-driver
+      repository: https://hpe-storage.github.io/co-deployments
+      version: 3.2.0
+    description: TrueNAS Container Storage Provider Helm chart for Kubernetes
+    digest: 811ffe0608f4c01dfb34383c076f596f7c4af071a46ab23fe1d2a39f64d4e626
+    home: https://github.com/hpe-storage/truenas-csp
+    icon: https://hpe-storage.github.io/truenas-csp/assets/icon.svg
+    keywords:
+    - HPE
+    - Storage
+    - CSI
+    maintainers:
+    - email: michael.mattsson@gmail.com
+      name: Michael Mattsson
+    name: truenas-csp
+    sources:
+    - https://github.com/hpe-storage/truenas-csp
+    type: application
+    urls:
+    - truenas-csp-1.2.4.tgz
+    version: 1.2.4
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: HPE CSI Driver for Kubernetes
+          url: https://scod.hpedev.io
+        - name: Install
+          url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    appVersion: 3.1.0
+    created: "2026-06-25T02:42:31.091758428Z"
+    dependencies:
+    - name: hpe-csi-driver
+      repository: https://hpe-storage.github.io/co-deployments
+      version: 3.1.0
+    description: TrueNAS Container Storage Provider Helm chart for Kubernetes
+    digest: fd84f835322a81b2a323b1376aedbc8ff3e16d23ee8a7dbd845ad5ae80f8306f
+    home: https://github.com/hpe-storage/truenas-csp
+    icon: https://hpe-storage.github.io/truenas-csp/assets/icon.svg
+    keywords:
+    - HPE
+    - Storage
+    - CSI
+    maintainers:
+    - email: michael.mattsson@gmail.com
+      name: Michael Mattsson
+    name: truenas-csp
+    sources:
+    - https://github.com/hpe-storage/truenas-csp
+    type: application
+    urls:
+    - truenas-csp-1.2.3.tgz
+    version: 1.2.3
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: HPE CSI Driver for Kubernetes
+          url: https://scod.hpedev.io
+        - name: Install
+          url: https://github.com/hpe-storage/truenas-csp/blob/master/INSTALL.md
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
     appVersion: 3.0.0
     created: "2025-09-25T05:08:58.653991651Z"
     dependencies:
@@ -364,4 +430,4 @@ entries:
     urls:
     - truenas-csp-1.0.0.tgz
     version: 1.0.0
-generated: "2025-09-25T05:08:58.65245858Z"
+generated: "2026-06-25T02:47:11.759822651Z"

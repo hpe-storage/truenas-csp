@@ -1,7 +1,6 @@
-FROM alpine:3.22.1
+FROM docker.io/python:3.12.13-alpine3.24
 ADD requirements.txt /
-RUN apk add --no-cache python3 py3-pip && \
-    python3 -m venv /app && \
+RUN python -m venv /app && \
     /app/bin/pip install -r requirements.txt
 ADD truenascsp/*.py /app/
 WORKDIR /app

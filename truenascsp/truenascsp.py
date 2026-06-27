@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# (C) Copyright 2024 Hewlett Packard Enterprise Development LP.
+# (C) Copyright 2026 Hewlett Packard Enterprise Development LP.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -545,13 +545,16 @@ class Snapshots:
         api = req.context
         try:
             csi_resp = []
+            system_version = api.version()
             snapshot_resource = api.snapshot_resource()
 
             if req.params.get('name'):
                 snapshot = api.fetch(snapshot_resource, field='snapshot_name',
                         extras={"holds": True}, value=api.xslt_id_to_dataset(req.params.get('name')))
 
-                if snapshot and snapshot.get('holds'):
+                if snapshot and snapshot.get('holds') and system_version == 'SCALE':
+                    csi_resp = [api.snapshot_to_snapshot(snapshot)]
+                if snapshot and system_version != 'SCALE':
                     csi_resp = [api.snapshot_to_snapshot(snapshot)]
             else:
                 # assuming too much here FIXME
@@ -559,7 +562,7 @@ class Snapshots:
                         extras={"holds": True }, returnBy=list, value=api.xslt_id_to_dataset(req.params.get('volume_id'))) or []
 
                 for snapshot in snapshots:
-                    if snapshot.get('holds'):
+                    if snapshot.get('holds') and system_version == 'SCALE':
                         csi_resp.append(api.snapshot_to_snapshot(snapshot))
 
             if csi_resp:

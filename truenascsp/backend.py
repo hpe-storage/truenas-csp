@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# (C) Copyright 2024 Hewlett Packard Enterprise Development LP.
+# (C) Copyright 2026 Hewlett Packard Enterprise Development LP.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import urllib3
 import requests
 import re
 from requests.auth import HTTPBasicAuth
-from ipaddress import IPv4Interface, ip_network
+from ipaddress import IPv4Network, IPv4Interface, ip_network
 
 urllib3.disable_warnings()
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -131,7 +131,11 @@ class Handler:
         hosts = []
 
         for cidr in cidrs:
-            hosts.append(str(IPv4Interface(cidr).ip))
+            try:
+                IPv4Network(cidr, strict=False)
+                hosts.append(str(IPv4Interface(cidr).ip))
+            except:
+                next
         return hosts
 
     def version(self):

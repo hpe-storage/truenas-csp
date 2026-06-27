@@ -4,9 +4,9 @@ These procedures assumes a running Kubernetes cluster [supported by the HPE CSI 
 
 ## Prerequisites
 
-- TrueNAS Core 12.0 or later
-- TrueNAS SCALE 22.02 or later
-- FreeNAS 11.2-U3 or later
+- TrueNAS SCALE 22.02 or later, 25.10.4 tested (26+ will NOT work)
+- TrueNAS Core 12.0 or later, 13.3-U1.2 tested
+- FreeNAS 11.2-U3 or later, 11.3-U5 tested
 - Helm 3.6 or later (recommended, only needed if using Helm to install the CSP)
 - Kubernetes 1.26 or later
 - OpenShift 4.14 or later
@@ -28,18 +28,18 @@ Install HPE CSI Driver using manifests (assumes latest supported Kubernetes vers
 
 ```
 kubectl create ns hpe-storage
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-rbac.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-linux-config.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/csi-driver-crd.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/crds/hpe-nodeinfo-crd.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-node.yaml
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.0.0/hpe-csi-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/hpe-csi-rbac.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/hpe-linux-config.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/csi-driver-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/crds/hpe-nodeinfo-crd.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/hpe-csi-node.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/co-deployments/master/yaml/csi-driver/v3.2.0/hpe-csi-controller.yaml
 ```
 
 Install the TrueNAS CSP using manifests:
 
 ```
-kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v3.0.0/truenas-csp.yaml
+kubectl create -f https://raw.githubusercontent.com/hpe-storage/truenas-csp/master/K8s/v3.2.0/truenas-csp.yaml
 ```
 
 **Note:** Change the version of the HPE CSI Driver manifests where applicable. Using mismatching versions of the TrueNAS CSP and the HPE CSI Driver will most likely **NOT** work (manifests reflects the latest version).

@@ -14,9 +14,9 @@ curl_args = '-v'
 all:
 	python3 -m py_compile truenascsp/*.py
 	rm -rf truenascsp/__pycache__
-	docker build -t $(REPO_NAME):$(IMAGE_TAG) .
+	docker build --progress=plain -t $(REPO_NAME):$(IMAGE_TAG) .
 push:
-	docker buildx build --platform=linux/amd64,linux/arm64 --progress=plain \
+	docker buildx build --progress=plain --platform=linux/amd64,linux/arm64 --progress=plain \
                 --provenance=false --push -t $(REPO_NAME):$(IMAGE_TAG) .
 run:
 	docker rm -f truenas-csp || true

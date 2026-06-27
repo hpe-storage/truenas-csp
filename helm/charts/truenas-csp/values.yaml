@@ -16,7 +16,7 @@ targetPortal: "hpe-csi"
 imagePullPolicy: IfNotPresent
 
 images:
-  trueNasCSP: quay.io/datamattsson/truenas-csp:v3.0.0
+  trueNasCSP: quay.io/datamattsson/truenas-csp:v3.2.0
 
 imagePullSecrets: []
 nameOverride: ""
@@ -95,5 +95,6 @@ hpe-csi-driver:
     alletra9000: true
     alletraStorageMP: true
     b10000FileService: true
+    x10000FileService: true
   logLevel: info
   disableNodeMonitor: false

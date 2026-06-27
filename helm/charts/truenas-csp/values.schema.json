@@ -406,7 +406,8 @@
                         "alletra6000",
                         "alletra9000",
                         "alletraStorageMP",
-			"b10000FileService"
+			"b10000FileService",
+			"x10000FileService"
                     ],
                     "properties": {
                         "nimble": {
@@ -448,6 +449,13 @@
                             "$id": "#/properties/hpe-csi-driver/properties/disable/properties/b10000FileService",
                             "type": "boolean",
                             "title": "The b10000FileService schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false
+                        },
+                        "x10000FileService": {
+                            "$id": "#/properties/hpe-csi-driver/properties/disable/properties/x10000FileService",
+                            "type": "boolean",
+                            "title": "The x10000FileService schema",
                             "description": "An explanation about the purpose of this instance.",
                             "default": false
                         },

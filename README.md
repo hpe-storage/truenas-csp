@@ -14,7 +14,7 @@ CSP API endpoints:
 
 The [CSP specification](https://github.com/hpe-storage/container-storage-provider) in an open specification that supports iSCSI, Fibre Channel and NFS protocols.
 
-As of version 3.0.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
+As of version 3.2.0 of the HPE CSI Driver, these parts of the CSI spec are currently implemented:
 
 - Dynamic Provisioning
 - Raw Block Volume
@@ -29,6 +29,8 @@ As of version 3.0.0 of the HPE CSI Driver, these parts of the CSI spec are curre
 
 Releases will track the upstream versioning of the HPE CSI Driver for Kubernetes and potential bugfixes in the TrueNAS CSP will be pushed to the same image tag matching the HPE CSI Driver Helm chart version.
 
+* [TrueNAS CSP v3.2.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v3.2.0) for HPE CSI Driver v3.2.0
+* TrueNAS CSP v3.1.0 for HPE CSI Driver v3.1.0 (Helm chart only)
 * [TrueNAS CSP v3.0.0](https://github.com/hpe-storage/truenas-csp/releases/tag/v3.0.0) for HPE CSI Driver v3.0.0
 * [TrueNAS CSP v2.5.2](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.5.2) for HPE CSI Driver v2.5.2
 * [TrueNAS CSP v2.5.1](https://github.com/hpe-storage/truenas-csp/releases/tag/v2.5.1) for HPE CSI Driver v2.5.1
@@ -104,29 +106,31 @@ Contributing to the TrueNAS CSP is subject to the following [contributing](CONTR
 
 There's currently no other open source CSPs, but the official HPE CSI Driver for Kubernetes include:
 
-- [HPE Alletra 5000/6000 and Nimble Storage](https://scod.hpedev.io/container_storage_provider/hpe_nimble_storage/index.html)
-- [HPE Alletra Storage MP B10000, Alletra 9000 and Primera (including 3PAR)](https://scod.hpedev.io/container_storage_provider/hpe_3par_primera/index.html)
+- [HPE Alletra Storage MP B10000, Alletra 9000 and Primera (including 3PAR)](https://scod.hpedev.io/csi_driver/container_storage_provider/hpe_alletra_storage_mp_b10000/index.html)
+- [HPE Alletra Storage MP X10000](https://scod.hpedev.io/csi_driver/container_storage_provider/hpe_alletra_storage_mp_x10000/index.html)
+- [HPE Alletra 5000/6000 and Nimble Storage](https://scod.hpedev.io/csi_driver/container_storage_provider/hpe_alletra_6000/index.html)
 
 # Similar projects
 
 The TrueNAS CSP is not the only enabler of TrueNAS/FreeNAS for Kubernetes.
 
+- [TrueNAS CSI Driver](https://github.com/truenas/truenas-csi): Official TrueNAS CSI Driver for TrueNAS 25.10.0+
 - [Democratic CSI](https://github.com/democratic-csi/democratic-csi): A generic OpenZFS CSI driver that supports multiple OpenZFS implementations
 - [FreeNAS Provisioner](https://github.com/nmaupu/freenas-provisioner): An external provisioner for FreeNAS NFS exports
 
 # License
 
-TrueNAS(R) (C) 2025 iXsystems, Inc.
+TrueNAS(R) (C) 2026 iXsystems, Inc.
 
-TrueNAS CORE(R) (C) 2025 iXsystems, Inc.
+TrueNAS CORE(R) (C) 2026 iXsystems, Inc.
 
-TrueNAS SCALE(R) (C) 2025 iXsystems, Inc.
+TrueNAS SCALE(R) (C) 2026 iXsystems, Inc.
 
-FreeNAS(R) is (C) 2011-2025 iXsystems
+FreeNAS(R) is (C) 2011-2026 iXsystems
 
 TrueNAS CSP is released under the [MIT License](LICENSE).
 
-(C) Copyright 2025 Hewlett Packard Enterprise Development LP.
+(C) Copyright 2026 Hewlett Packard Enterprise Development LP.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
